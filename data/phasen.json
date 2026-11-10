@@ -1,0 +1,162 @@
+{
+  "_info": "Reha-Stufen. Keine feste Phasendauer: Wechsel nur nach Kriterien. Zeitspannen sind reine Orientierung. status: gesichert | OFFEN | ergänzend. Quelle: docs/quellen_extraktion.md",
+  "version": 1,
+  "phasen": [
+    {
+      "id": "stufe1",
+      "nr": 1,
+      "name": "Isometrie",
+      "titel": "Stufe 1 – Isometrisches Training",
+      "ziel": "Schnelle Schmerzabsenkung und Heranführung der Sehne an Belastung ohne dynamische Bewegung.",
+      "einstieg": [
+        "Starkes Schmerzgeschehen, das dynamische Belastungen nicht zulässt.",
+        "Akut-/Initialbehandlung, auch während der Wettkampfsaison."
+      ],
+      "orientierung_dauer": {
+        "text": "Keine feste Dauer. In Einzelprotokollen werden 1 bis 3 Wochen genannt (nur Orientierung).",
+        "status": "gesichert",
+        "quelle": "Quellenextraktion §1, Modell 1 Stufe 1 und Modell 2 Phase 1 [6]"
+      },
+      "frequenz": {
+        "text": "1–2× täglich",
+        "status": "gesichert",
+        "quelle": "Projektvorgabe bei Widerspruch (Quellen: 2× täglich bzw. 2–3× täglich), Quellenextraktion §6.2"
+      },
+      "uebungen": ["iso_decline_squat"],
+      "begleitend": ["dehnen_oberschenkel", "faszienrolle"],
+      "uebergang": {
+        "nach": "stufe2",
+        "regel_id": "stufe1_zu_stufe2",
+        "kriterien": [
+          { "id": "k1_muehelos", "text": "Isometrisches Halten ist mühelos möglich.", "status": "gesichert", "quelle": "Quellenextraktion §3.1c [8]" },
+          { "id": "k1_schmerz", "automatisch": "schmerz", "text": "Schmerz während der Übung höchstens 2–3/10.", "status": "gesichert", "quelle": "Quellenextraktion §1 Modell 2 Phase 1 [7], §3.3" },
+          { "id": "k1_physio", "text": "Wechsel mit Physio/Arzt abgestimmt.", "status": "gesichert", "quelle": "Projektvorgabe" }
+        ]
+      },
+      "status": "gesichert",
+      "quelle": "Patellaspitzensyndrom – sportärztezeitung; Tendinopathie der Patellasehne – orthopassion (Quellenextraktion §1)"
+    },
+    {
+      "id": "stufe2",
+      "nr": 2,
+      "name": "Isotonisch",
+      "titel": "Stufe 2 – Isotonisches Training (Exzentrik und/oder HSR)",
+      "ziel": "Anregung des Sehnen-Remodellings und Kraftaufbau unter Last.",
+      "einstieg": [
+        "Ausreichende Linderung der Ruhe- und Belastungsschmerzen durch die isometrische Phase.",
+        "Übergangskriterien aus Stufe 1 erfüllt (Schmerz ≤ 2–3/10)."
+      ],
+      "varianten": [
+        {
+          "id": "exzentrik",
+          "name": "Exzentrisches Training (Schrägbrett)",
+          "uebungen": ["exz_decline_squat"],
+          "standard_aktiv": true,
+          "orientierung_dauer": {
+            "text": "Keine feste Dauer. Quellen nennen 3–6 Monate; andere Quelle 8–12 Wochen; Gewebeheilung 12–16 Wochen (Widerspruch, nur Orientierung).",
+            "status": "gesichert",
+            "quelle": "Quellenextraktion §1 Modell 2 Phase 2 [6], [2], [13]"
+          },
+          "status": "gesichert",
+          "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion; sportärztezeitung"
+        },
+        {
+          "id": "hsr",
+          "name": "Heavy Slow Resistance (HSR)",
+          "uebungen": ["hsr"],
+          "standard_aktiv": false,
+          "orientierung_dauer": {
+            "text": "OFFEN – nicht in den Quellen.",
+            "status": "OFFEN",
+            "quelle": "Quellenextraktion §1 Modell 1 Stufe 2"
+          },
+          "status": "OFFEN",
+          "quelle": "Patellaspitzensyndrom – sportärztezeitung; Jumper's knee: Progressive Sehnenbelastung … (Quellenextraktion §1, §2)"
+        }
+      ],
+      "frequenz": {
+        "text": "Exzentrik: Einstieg 1× täglich, Steigerung bis 2–3× täglich. HSR: OFFEN.",
+        "status": "gesichert",
+        "quelle": "Projektvorgabe; Quellenextraktion §3.1a, §6.2"
+      },
+      "begleitend": ["dehnen_oberschenkel", "faszienrolle"],
+      "uebergang": {
+        "nach": "stufe3",
+        "regel_id": "stufe2_zu_stufe3",
+        "kriterien": [
+          { "id": "k2_tolerierbar", "text": "Schwere isotonische Kraftübungen werden schmerzfrei bzw. gut tolerierbar absolviert.", "status": "gesichert", "quelle": "Quellenextraktion §3.1c [9, 10]" },
+          { "id": "k2_schwelle", "text": "Konkreter Schmerz-Schwellenwert: OFFEN – nicht in den Quellen.", "status": "OFFEN", "quelle": "Quellenextraktion §1 Modell 1 Stufe 2" },
+          { "id": "k2_physio", "text": "Wechsel mit Physio/Arzt abgestimmt.", "status": "gesichert", "quelle": "Projektvorgabe" }
+        ]
+      },
+      "status": "gesichert",
+      "quelle": "Quellenextraktion §1"
+    },
+    {
+      "id": "stufe3",
+      "nr": 3,
+      "name": "Plyometrie",
+      "titel": "Stufe 3 – Plyometrie (Energy Storage Loading)",
+      "ziel": "Wiederaufladung der elastischen Energiespeicher der Sehne, Schulung des Dehnungs-Verkürzungs-Zyklus, Anpassung an Lauf- und Sprungtechniken.",
+      "einstieg": [
+        "Schmerzfreie bzw. gut tolerierbare Absolvierung der schweren isotonischen Kraftübungen."
+      ],
+      "orientierung_dauer": {
+        "text": "OFFEN – nicht in den Quellen.",
+        "status": "OFFEN",
+        "quelle": "Quellenextraktion §1 Modell 1 Stufe 3"
+      },
+      "frequenz": {
+        "text": "Höchstens 2× pro Woche.",
+        "status": "ergänzend",
+        "quelle": "Projektvorgabe; Quelle: Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage, Quellenextraktion §6.2)"
+      },
+      "uebungen": ["box_jumps", "depth_jumps"],
+      "begleitend": ["dehnen_oberschenkel", "faszienrolle"],
+      "uebergang": {
+        "nach": "stufe4",
+        "regel_id": "stufe3_zu_stufe4",
+        "kriterien": [
+          { "id": "k3_beschwerdefrei", "text": "Plyometrische und laufspezifische Übungen beschwerdefrei.", "status": "gesichert", "quelle": "Quellenextraktion §3.1c [9]" },
+          { "id": "k3_schwelle", "text": "Konkreter Schmerz-Schwellenwert: OFFEN – nicht in den Quellen.", "status": "OFFEN", "quelle": "Quellenextraktion §1 Modell 1 Stufe 3" },
+          { "id": "k3_physio", "text": "Wechsel mit Physio/Arzt abgestimmt.", "status": "gesichert", "quelle": "Projektvorgabe" }
+        ]
+      },
+      "status": "gesichert",
+      "quelle": "Patellaspitzensyndrom – sportärztezeitung; Jumper's knee: Progressive Sehnenbelastung … (Quellenextraktion §1)"
+    },
+    {
+      "id": "stufe4",
+      "nr": 4,
+      "name": "Return to Sport",
+      "titel": "Stufe 4 – Sportartspezifisches Training & Return to Sport",
+      "ziel": "Vollständige schmerzfreie Rückkehr in Training und Wettkampf.",
+      "einstieg": [
+        "Beschwerdefreies Absolvieren der plyometrischen und laufspezifischen Übungen."
+      ],
+      "orientierung_dauer": {
+        "text": "Rückkehr ins normale Training frühestens nach 4 Wochen; Reha-Programme in Studien bis zu 24 Wochen (nur Orientierung).",
+        "status": "gesichert",
+        "quelle": "Quellenextraktion §1 Modell 1 Stufe 4 [1], [9]"
+      },
+      "frequenz": {
+        "text": "OFFEN – nicht in den Quellen.",
+        "status": "OFFEN",
+        "quelle": "Quellenextraktion §1"
+      },
+      "uebungen": [],
+      "begleitend": ["dehnen_oberschenkel", "faszienrolle"],
+      "abschluss": {
+        "kriterien": [
+          { "id": "k4_vas", "text": "Schmerz unter Belastung auf VAS ≤ 2/10 gesenkt.", "status": "gesichert", "quelle": "Quellenextraktion §1 Stufe 4 [5], §6.9" },
+          { "id": "k4_visap", "text": "VISA-P um mindestens 13 Punkte verbessert.", "status": "gesichert", "quelle": "Quellenextraktion §4.4, §6.9" },
+          { "id": "k4_tests", "text": "Single-Leg Decline Squat, Countermovement Jump, Triple Hop und Side-Hops beschwerdefrei.", "status": "gesichert", "quelle": "Quellenextraktion §6.9" },
+          { "id": "k4_funktion", "text": "Uneingeschränkte funktionelle Wettkampfbelastbarkeit.", "status": "gesichert", "quelle": "Quellenextraktion §1 Stufe 4 [8]" },
+          { "id": "k4_physio", "text": "Rückkehr mit Physio/Arzt abgestimmt.", "status": "gesichert", "quelle": "Projektvorgabe" }
+        ]
+      },
+      "status": "gesichert",
+      "quelle": "Quellenextraktion §1, §6.9"
+    }
+  ]
+}

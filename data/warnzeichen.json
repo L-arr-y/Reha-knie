@@ -1,0 +1,86 @@
+{
+  "_info": "Warnzeichen. Kategorie 'sofort_arzt' = Red Flags mit sofortigem Arztkontakt. Kategorie 'training_stoppen' = Training aussetzen und ärztlichen Rat einholen.",
+  "version": 1,
+  "titel": "Warnzeichen",
+  "aufforderung": "Wenn eines dieser Zeichen auftritt: Training sofort abbrechen und ärztlichen Rat einholen.",
+  "notruf_hinweis": "Bei akuten, starken Beschwerden: Hausarzt, ärztlicher Bereitschaftsdienst 116 117, im Notfall 112.",
+  "notruf_status": "ergänzend",
+  "notruf_quelle": "Allgemeine Notrufnummern Deutschland (nicht aus den Quellen, rein organisatorisch)",
+  "kategorien": [
+    {
+      "id": "sofort_arzt",
+      "titel": "Sofort Arzt kontaktieren",
+      "eintraege": [
+        {
+          "id": "fieber",
+          "titel": "Fieber oder Krankheitsgefühl",
+          "text": "Fieber, Schüttelfrost oder allgemeines Krankheitsgefühl.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.2 [6, 7]"
+        },
+        {
+          "id": "roetung",
+          "titel": "Rötung, Überwärmung, Eiter",
+          "text": "Starke, rasch zunehmende Rötung, deutliche Überwärmung oder eitrige Sekretion am Knie.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.2 [6, 7]"
+        },
+        {
+          "id": "wunde",
+          "titel": "Offene Wunde am Knie",
+          "text": "Offene Hautverletzungen, Abschürfungen oder Wunden direkt über dem Kniegelenk.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.2 [7]"
+        },
+        {
+          "id": "funktionsverlust",
+          "titel": "Funktionsverlust oder Blockade",
+          "text": "Deutlich eingeschränkte Kniebeweglichkeit, Gelenkblockade oder vollständiger Funktionsverlust des Beins.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.2 [6, 7]"
+        },
+        {
+          "id": "ruptur",
+          "titel": "Verdacht auf Sehnenriss",
+          "text": "Verdacht auf einen Teil- oder Vollriss der Patellasehne oder einen strukturellen Schaden.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.2 [5]"
+        },
+        {
+          "id": "unklarer_schmerz",
+          "titel": "Starker, unklarer Schmerz",
+          "text": "Starker, nicht einzuordnender Schmerz (Abgrenzung z. B. gegen Gelenkentzündung, Gicht oder Bandverletzung).",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.2 [7]"
+        }
+      ]
+    },
+    {
+      "id": "training_stoppen",
+      "titel": "Training aussetzen, ärztlichen Rat einholen",
+      "eintraege": [
+        {
+          "id": "ruheschmerz",
+          "titel": "Ruheschmerz oder Nachtschmerz",
+          "text": "Schmerzen in Ruhe (z. B. beim Sitzen mit angewinkelten Beinen) oder nachts. Belastungstraining aussetzen, Sportpause unter ärztlicher/physiotherapeutischer Führung.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.1 [4, 5]"
+        },
+        {
+          "id": "alltagsschmerz",
+          "titel": "Zunehmende Alltagsschmerzen",
+          "text": "Zunehmende Schmerzen bei Alltagsbelastungen wie Treppensteigen, Gehen oder Aufstehen. Übungsprogramm stoppen.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.1 [3]"
+        },
+        {
+          "id": "keine_besserung",
+          "titel": "Keine Besserung trotz Reduktion",
+          "text": "Die Beschwerden bessern sich trotz reduzierter Belastung nicht. Übungsprogramm komplett aussetzen.",
+          "status": "gesichert",
+          "quelle": "Quellenextraktion §5.1 [3]"
+        }
+      ]
+    }
+  ]
+}

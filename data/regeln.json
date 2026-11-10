@@ -1,0 +1,155 @@
+{
+  "_info": "Schwellenwerte und Regeln. Zahlen hier ändern, die App übernimmt sie. Die App gibt Empfehlungen und Warnungen, stellt aber keine Diagnosen. status: gesichert | OFFEN | ergänzend.",
+  "version": 1,
+  "skala": { "min": 0, "max": 10, "text": "Schmerz 0–10 (VAS/NRS)", "status": "gesichert", "quelle": "Quellenextraktion §4.1" },
+
+  "ampel": {
+    "gruen_max": 3,
+    "gelb_max": 5,
+    "stufen": {
+      "gruen": { "symbol": "✓", "titel": "Grün", "text": "Im Rahmen – weiter wie geplant." },
+      "gelb": { "symbol": "!", "titel": "Gelb", "text": "Erlaubt – aufmerksam beobachten." },
+      "rot": { "symbol": "✕", "titel": "Rot", "text": "Übung abbrechen. Nächste Einheit Belastung reduzieren." }
+    },
+    "status": "gesichert",
+    "quelle": "Quellen: bis 4–5/10 während der Übung zulässig, > 5/10 Überbelastung (Quellenextraktion §3.3, §4.2). Grenze grün/gelb bei 3 = Projektvorgabe."
+  },
+
+  "reduktion": {
+    "schwelle_ueber": 5,
+    "aktion_text": "Schmerz über 5/10: In der nächsten Einheit die Belastung reduzieren.",
+    "optionen_text": "Laut Quellen entweder um 15 Wiederholungen pro Tag reduzieren oder eine Woche mit reduzierter Intensität trainieren. Mit Physio abstimmen.",
+    "pruefung_nach_tagen": 7,
+    "pruefung_frage": "Seit dem Schmerz über 5/10 ist eine Woche vergangen. Hat sich der Schmerz gebessert?",
+    "keine_besserung_text": "Keine Besserung nach einer Woche: Übungsprogramm pausieren und Arzt kontaktieren.",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §3.2a/b, §5.1; Projektvorgabe 'nächste Einheit reduzieren, nach einer Woche ohne Besserung pausieren'"
+  },
+
+  "alltagsschmerz": {
+    "frage": "Nehmen die Schmerzen im Alltag zu (z. B. Treppensteigen, Gehen, Aufstehen)?",
+    "ja_text": "Zunehmende Alltagsschmerzen: Übungsprogramm pausieren und Arzt kontaktieren.",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §3.2b, §4.2, §5.1"
+  },
+
+  "phasenwechsel": [
+    {
+      "id": "stufe1_zu_stufe2",
+      "von": "stufe1",
+      "nach": "stufe2",
+      "schmerz_max": 3,
+      "bestaetigung": "Isometrisches Halten ist mühelos möglich.",
+      "text": "Wechsel zur Exzentrik erst, wenn das Halten mühelos geht und der Schmerz höchstens 2–3/10 beträgt. Mit Physio/Arzt abstimmen.",
+      "status": "gesichert",
+      "quelle": "Quellenextraktion §1 Modell 2 Phase 1 [7], §3.1c, §3.3"
+    },
+    {
+      "id": "stufe2_zu_stufe3",
+      "von": "stufe2",
+      "nach": "stufe3",
+      "schmerz_max": null,
+      "bestaetigung": "Schwere isotonische Übungen sind schmerzfrei bzw. gut tolerierbar.",
+      "text": "Konkreter Schwellenwert OFFEN. Wechsel nur nach Rücksprache mit Physio/Arzt.",
+      "status": "OFFEN",
+      "quelle": "Quellenextraktion §1 Modell 1 Stufe 2, §3.1c"
+    },
+    {
+      "id": "stufe3_zu_stufe4",
+      "von": "stufe3",
+      "nach": "stufe4",
+      "schmerz_max": null,
+      "bestaetigung": "Plyometrische und laufspezifische Übungen sind beschwerdefrei.",
+      "text": "Konkreter Schwellenwert OFFEN. Rückkehr ins normale Training frühestens nach 4 Wochen. Mit Physio/Arzt abstimmen.",
+      "mindestdauer_wochen": 4,
+      "status": "OFFEN",
+      "quelle": "Quellenextraktion §1 Modell 1 Stufe 3/4, §3.1c"
+    }
+  ],
+
+  "progression_exzentrik": {
+    "uebung": "exz_decline_squat",
+    "stufen": [
+      { "saetze": 1, "wiederholungen": 15 },
+      { "saetze": 2, "wiederholungen": 15 },
+      { "saetze": 3, "wiederholungen": 15 }
+    ],
+    "kriterium": "beschwerdefrei",
+    "steigerung_text": "Einheit war beschwerdefrei – nächste Stufe möglich (mit Physio abstimmen).",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §1 Modell 2 Phase 2, §3.1a"
+  },
+
+  "zusatzlast": {
+    "ab_saetze": 3,
+    "ab_wiederholungen": 15,
+    "kriterium": "beschwerdefrei",
+    "text": "3×15 beschwerdefrei geschafft – Zusatzlast (z. B. Rucksack, Langhantel) schrittweise möglich. Mit Physio abstimmen.",
+    "schritt_kg": null,
+    "schritt_status": "OFFEN",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §3.1b, §3.3"
+  },
+
+  "muskelkater": {
+    "frage": "Hast du Muskelkater oder spürbare Ermüdung in den Beinen?",
+    "ja_text": "Sprungtraining heute auslassen und einen zusätzlichen Ruhetag einlegen.",
+    "betrifft": "plyometrie",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §3.2b, §3.3, §6.1 [18]"
+  },
+
+  "plyometrie": {
+    "max_pro_woche": 2,
+    "text": "Plyometrie höchstens 2× pro Woche.",
+    "status": "ergänzend",
+    "quelle": "Projektvorgabe; Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)"
+  },
+
+  "folgetag_schmerz": {
+    "text": "Erlaubtes Schmerzverhalten am Folgetag: OFFEN. Wird nur erfasst und im Verlauf gezeigt, nicht bewertet.",
+    "erlaubt_max": null,
+    "status": "OFFEN",
+    "quelle": "Quellenextraktion §4.3 ('24-Stunden-Regel' nicht in den Quellen)"
+  },
+
+  "nach_training": {
+    "text": "Muskelkater und ein vorübergehend stärkeres Spüren der Patellasehne direkt nach den Übungen sind unbedenklich.",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §4.2"
+  },
+
+  "wochenstruktur": {
+    "text": "Trainings- und Ruhetage: OFFEN – in der App frei einstellbar.",
+    "standard_trainingstage": [1, 2, 3, 4, 5, 6, 0],
+    "status": "OFFEN",
+    "quelle": "Quellenextraktion (keine Angabe)"
+  },
+
+  "visap": {
+    "min": 0,
+    "max": 100,
+    "klinisch_relevant_plus": 13,
+    "erinnerung_tage": 28,
+    "text": "VISA-P: max. 100 Punkte (beschwerdefrei). Eine Verbesserung um mindestens 13 Punkte gilt als klinisch bedeutsam.",
+    "status": "gesichert",
+    "quelle": "Quellenextraktion §4.4, §6.9; Erinnerungsintervall 4 Wochen = Projektvorgabe"
+  },
+
+  "backup": {
+    "erinnerung_tage": 14,
+    "text": "Zeit für eine Sicherung: Daten als CSV exportieren.",
+    "status": "gesichert",
+    "quelle": "Projektvorgabe"
+  },
+
+  "hinweise": {
+    "disclaimer": "Diese App ersetzt keine ärztliche Diagnose oder Therapie. Training mit Arzt/Physio abstimmen.",
+    "keine_diagnose": "Die App gibt Empfehlungen und Warnungen, stellt aber keine Diagnosen.",
+    "video_disclaimer": "Videos sind nicht geprüft. Ausführung mit Physio/Arzt abstimmen.",
+    "offline_video": "Nur mit Internetverbindung",
+    "schmerzausloeser": "Schmerzauslösende Tätigkeiten im Alltag (z. B. langes Sitzen mit angewinkelten Beinen, Hocken, tiefes Knien) vermeiden.",
+    "status": "gesichert",
+    "quelle": "Projektvorgabe; Quellenextraktion §3.2b, §6.8"
+  }
+}

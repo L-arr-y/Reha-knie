@@ -1,0 +1,183 @@
+{
+  "_info": "Übungskatalog. Jeder Dosierungswert hat status (gesichert | OFFEN | ergänzend) und quelle. wert = null bedeutet OFFEN: in der App selbst (mit Physio) befüllbar. typ: halten (Timer mit Haltezeit) | wiederholungen | frei (ohne Zählung). suchbegriff/suchbegriff_en werden zu einem YouTube-Suchlink.",
+  "version": 1,
+  "uebungen": [
+    {
+      "id": "iso_decline_squat",
+      "name": "Isometrische Kniebeuge auf schräger Ebene",
+      "name_en": "Isometric Decline Squat",
+      "typ": "halten",
+      "phasen": ["stufe1"],
+      "zielstruktur": "Patellasehne, M. quadriceps femoris",
+      "ausfuehrung": [
+        "Ferse des betroffenen Beins auf eine 20–30° geneigte Fläche stellen.",
+        "Knie bis 60° beugen.",
+        "Position halten."
+      ],
+      "equipment": "Therapiekeil oder Buch (20–30° Neigung)",
+      "dosierung": {
+        "saetze": { "wert": 5, "text": "5 Sätze", "status": "gesichert", "quelle": "Projektvorgabe 5×45 s (Quellen: 5–10 Sätze), orthopassion; sportärztezeitung" },
+        "haltezeit_s": { "wert": 45, "text": "45 Sekunden halten", "status": "gesichert", "quelle": "orthopassion; sportärztezeitung" },
+        "pause_s": { "wert": 60, "text": "1 Minute Pause", "status": "gesichert", "quelle": "orthopassion" },
+        "einheiten_pro_tag": { "wert_min": 1, "wert_max": 2, "text": "1–2× täglich", "status": "gesichert", "quelle": "Projektvorgabe bei Widerspruch (Quellen: 2× bzw. 2–3× täglich)" }
+      },
+      "intensitaet": { "text": "Schmerz bis max. 4–5/10 erlaubt. Übergang zur nächsten Stufe bei ≤ 2–3/10.", "status": "gesichert", "quelle": "orthopassion" },
+      "suchbegriff": "Isometrische Kniebeuge Schrägbrett Patellasehne Übung Anleitung",
+      "suchbegriff_en": "isometric decline squat patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Tendinopathie der Patellasehne (Patellaspitzensyndrom) – orthopassion; Patellaspitzensyndrom – sportärztezeitung"
+    },
+    {
+      "id": "exz_decline_squat",
+      "name": "Exzentrische Kniebeuge auf schräger Ebene",
+      "name_en": "Eccentric Decline Squat",
+      "typ": "wiederholungen",
+      "phasen": ["stufe2"],
+      "variante": "exzentrik",
+      "zielstruktur": "Patellasehne (Dehnung unter Belastung), M. quadriceps femoris",
+      "ausfuehrung": [
+        "Ferse auf eine 20–30° geneigte Fläche stellen.",
+        "Mit dem betroffenen Bein einbeinig langsam absenken (ca. 3 Sekunden, Zählen 21–22–23) bis 90° (oder 60°).",
+        "Kurz in der Endposition verharren.",
+        "Mit beiden Beinen zurück in die Ausgangsstellung drücken."
+      ],
+      "equipment": "Schrägbrett/Therapiekeil (20–30°) oder dickes Buch, Stuhllehne (optional), später Rucksack/Langhantel als Zusatzgewicht",
+      "dosierung": {
+        "saetze": { "wert": 1, "text": "Einstieg 1 Satz, Steigerung auf 2–3 Sätze", "status": "gesichert", "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion" },
+        "wiederholungen": { "wert": 15, "text": "15 Wiederholungen", "status": "gesichert", "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion" },
+        "tempo": { "text": "Ca. 3 s exzentrisch absenken, kurz halten, zügig mit beiden Beinen hoch. (Abweichende TNT-Variante in den Quellen: 4 s exzentrisch / 3 s konzentrisch mit Metronom.)", "status": "gesichert", "quelle": "orthopassion; Exzentrisches Training bei Patellaspitzensyndrom; sportärztezeitung (TNT)" },
+        "pause_s": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "einheiten_pro_tag": { "wert_min": 1, "wert_max": 3, "text": "Einstieg 1× täglich, Steigerung bis 2–3× täglich", "status": "gesichert", "quelle": "Projektvorgabe; Quellenextraktion §3.1a, §6.2" },
+        "zusatzlast_kg": { "wert": null, "text": "Erst nach beschwerdefreien 3×15. Höhe/Schrittweite: OFFEN", "status": "OFFEN", "quelle": "Quellenextraktion §3.1b (nur 'schrittweise', keine Zahl)" }
+      },
+      "intensitaet": { "text": "Schmerz bis max. 4–5/10 erlaubt. Bei stärkerem Schmerz Belastung reduzieren.", "status": "gesichert", "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion" },
+      "suchbegriff": "Exzentrische Kniebeuge Schrägbrett Decline Squat Patellasehne Übung Anleitung",
+      "suchbegriff_en": "eccentric decline squat patellar tendon",
+      "status": "gesichert",
+      "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; Tendinopathie der Patellasehne – orthopassion; Patellaspitzensyndrom – sportärztezeitung"
+    },
+    {
+      "id": "hsr",
+      "name": "Heavy Slow Resistance (HSR)",
+      "name_en": "Heavy Slow Resistance Training",
+      "typ": "wiederholungen",
+      "phasen": ["stufe2"],
+      "variante": "hsr",
+      "zielstruktur": "Patellasehne (Tenozyten-Stimulation), M. quadriceps femoris",
+      "ausfuehrung": [
+        "Langsame isotonische Kräftigungsübungen unter hoher Last, z. B. Beinpresse oder Kniebeugen.",
+        "Konkrete Übungsauswahl: OFFEN – mit Physio festlegen."
+      ],
+      "equipment": "Langhantel, Kraftgeräte (z. B. Beinpresse)",
+      "dosierung": {
+        "saetze": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "wiederholungen": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "last": { "wert": null, "text": "OFFEN – nur 'hohe Last' in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "tempo": { "wert": null, "text": "OFFEN – nur 'langsam kontrolliert' (Beispiel TNT: 4 s exzentrisch / 3 s konzentrisch)", "status": "OFFEN", "quelle": "sportärztezeitung" },
+        "pause_s": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "einheiten_pro_woche": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" }
+      },
+      "intensitaet": { "text": "Hohe Lasten. Konkrete Werte OFFEN.", "status": "OFFEN", "quelle": "sportärztezeitung" },
+      "suchbegriff": "Heavy Slow Resistance Patellasehne Beinpresse Übung",
+      "suchbegriff_en": "heavy slow resistance patellar tendinopathy",
+      "status": "OFFEN",
+      "quelle": "Patellaspitzensyndrom – sportärztezeitung; Jumper's knee: Progressive Sehnenbelastung bei Patellaspitzensyndrom besser als exzentrisches Training"
+    },
+    {
+      "id": "box_jumps",
+      "name": "Box Jumps",
+      "name_en": "Box Jumps",
+      "typ": "wiederholungen",
+      "phasen": ["stufe3"],
+      "plyometrie": true,
+      "zielstruktur": "Patellasehne (Dehnungs-Verkürzungs-Zyklus), Ober- und Unterschenkelmuskulatur",
+      "ausfuehrung": [
+        "Explosiver Sprung auf eine Plattform/Sprungbox.",
+        "Kurze Bodenkontaktzeiten."
+      ],
+      "equipment": "Sprungbox/Plattform (30–60 cm)",
+      "dosierung": {
+        "saetze": { "wert": 3, "wert_max": 5, "text": "3–5 Sätze", "status": "ergänzend", "quelle": "Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)" },
+        "wiederholungen": { "wert": 6, "wert_max": 8, "text": "6–8 Wiederholungen", "status": "ergänzend", "quelle": "Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)" },
+        "pause_s": { "wert": 120, "text": "ca. 2 Minuten", "status": "ergänzend", "quelle": "Quellenextraktion §2 [13] (schwache Quellenlage)" },
+        "einheiten_pro_woche": { "wert": 2, "text": "höchstens 2× pro Woche", "status": "ergänzend", "quelle": "Projektvorgabe; Fit-Connect" }
+      },
+      "intensitaet": { "text": "Explosiv. Bei Muskelkater/Ermüdung auslassen.", "status": "ergänzend", "quelle": "Fit-Connect; Quellenextraktion §3.2b" },
+      "suchbegriff": "Box Jump Patellasehne Reha Übung Anleitung",
+      "suchbegriff_en": "box jump plyometric rehab patellar tendinopathy",
+      "status": "ergänzend",
+      "quelle": "Sprungkrafttraining Basketball – Fit-Connect; Jumper's knee: Progressive Sehnenbelastung … (Stufe 3 allgemein)"
+    },
+    {
+      "id": "depth_jumps",
+      "name": "Depth Jumps",
+      "name_en": "Depth Jumps",
+      "typ": "wiederholungen",
+      "phasen": ["stufe3"],
+      "plyometrie": true,
+      "zielstruktur": "Patellasehne (Dehnungs-Verkürzungs-Zyklus), Ober- und Unterschenkelmuskulatur",
+      "ausfuehrung": [
+        "Von einer Box absteigen/abspringen.",
+        "Nach der Landung sofort reaktiv nach oben springen."
+      ],
+      "equipment": "Sprungbox/Plattform (30–60 cm)",
+      "dosierung": {
+        "saetze": { "wert": null, "text": "OFFEN – Satzzahl nur für Box Jumps genannt", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "wiederholungen": { "wert": 3, "wert_max": 5, "text": "3–5 Wiederholungen", "status": "ergänzend", "quelle": "Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)" },
+        "pause_s": { "wert": 120, "text": "ca. 2 Minuten", "status": "ergänzend", "quelle": "Quellenextraktion §2 [13] (schwache Quellenlage)" },
+        "einheiten_pro_woche": { "wert": 2, "text": "höchstens 2× pro Woche", "status": "ergänzend", "quelle": "Projektvorgabe; Fit-Connect" }
+      },
+      "intensitaet": { "text": "Explosiv. Bei Muskelkater/Ermüdung auslassen.", "status": "ergänzend", "quelle": "Fit-Connect; Quellenextraktion §3.2b" },
+      "suchbegriff": "Depth Jump Patellasehne Reha Übung Anleitung",
+      "suchbegriff_en": "depth jump plyometric rehab patellar tendinopathy",
+      "status": "ergänzend",
+      "quelle": "Sprungkrafttraining Basketball – Fit-Connect"
+    },
+    {
+      "id": "dehnen_oberschenkel",
+      "name": "Dehnen Oberschenkel (Quadrizeps & Hamstrings)",
+      "name_en": "Quadriceps and Hamstring Stretching",
+      "typ": "frei",
+      "phasen": ["stufe1", "stufe2", "stufe3", "stufe4"],
+      "begleitend": true,
+      "zielstruktur": "M. quadriceps femoris, Hamstrings, Hüftbeuger",
+      "ausfuehrung": [
+        "Statische und dynamische Dehnung der Oberschenkelvorder- und -rückseite sowie der Hüftbeuger.",
+        "Ziel: weniger Zug am Patellasehnenansatz."
+      ],
+      "equipment": "Keine (ggf. Matte)",
+      "dosierung": {
+        "saetze": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "haltezeit_s": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
+        "haeufigkeit": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" }
+      },
+      "intensitaet": { "text": "Bis zu einem leichten Dehnreiz ohne starken Schmerz.", "status": "gesichert", "quelle": "Patellaspitzensyndrom: Symptome, Ursachen und Therapien" },
+      "suchbegriff": "Quadrizeps Hamstrings dehnen Patellasehne Übung Anleitung",
+      "suchbegriff_en": "quad hamstring stretch patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Patellaspitzensyndrom: Symptome, Ursachen und Therapien; Patellaspitzensyndrom – sportärztezeitung"
+    },
+    {
+      "id": "faszienrolle",
+      "name": "Faszienrolle (Selbstmassage Beine)",
+      "name_en": "Foam Rolling",
+      "typ": "frei",
+      "phasen": ["stufe1", "stufe2", "stufe3", "stufe4"],
+      "begleitend": true,
+      "zielstruktur": "Gesamte Beinmuskulatur (Oberschenkel vorne/hinten, Waden)",
+      "ausfuehrung": [
+        "Beinmuskulatur vom Oberschenkel bis zur Wade gründlich und langsam ausrollen."
+      ],
+      "equipment": "Faszienrolle",
+      "dosierung": {
+        "haeufigkeit": { "wert": null, "text": "Alle 2–3 Tage oder nach dem Training", "status": "gesichert", "quelle": "orthopassion" },
+        "dauer_min": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" }
+      },
+      "intensitaet": { "text": "Tolerierbarer Massagedruck.", "status": "gesichert", "quelle": "orthopassion" },
+      "suchbegriff": "Faszienrolle Oberschenkel Wade Patellasehne Anleitung",
+      "suchbegriff_en": "foam rolling quads patellar tendon",
+      "status": "gesichert",
+      "quelle": "Tendinopathie der Patellasehne (Patellaspitzensyndrom) – orthopassion"
+    }
+  ]
+}

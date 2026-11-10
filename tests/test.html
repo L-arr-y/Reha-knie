@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests – Reha Knie</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; margin: 16px; background: #fff; color: #000; }
+    @media (prefers-color-scheme: dark) { body { background: #000; color: #fff; } }
+    .ok { color: #248a3d; } .fail { color: #d70015; font-weight: 700; }
+    li { margin: 4px 0; } h1 { font-size: 22px; } pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Tests</h1>
+  <p id="summary">Läuft …</p>
+  <ul id="out"></ul>
+  <script type="module">
+    import { lauf } from './runner.js';
+    const regeln = await fetch('../data/regeln.json').then((r) => r.json());
+    const phasen = (await fetch('../data/phasen.json').then((r) => r.json())).phasen;
+    const uebungen = (await fetch('../data/uebungen.json').then((r) => r.json())).uebungen;
+    const ctx = { regeln, phasen, uebungen };
+    const mods = [await import('./regeln.test.js')];
+    try { mods.push(await import('./csv.test.js')); } catch (_) { /* CSV-Tests folgen in Runde 3 */ }
+    const { ok, fail, zeilen } = await lauf(mods, ctx);
+    document.getElementById('out').innerHTML = zeilen.join('');
+    const s = document.getElementById('summary');
+    s.textContent = `${ok} bestanden, ${fail} fehlgeschlagen`;
+    s.className = fail ? 'fail' : 'ok';
+    window.testErgebnis = { ok, fail };
+  </script>
+</body>
+</html>
