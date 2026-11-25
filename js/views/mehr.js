@@ -13,8 +13,8 @@ export function render() {
   let html = kopf('Mehr');
 
   html += `<div class="section"><div class="list">
-    <button class="cell" data-action="warn-open"><span style="color:var(--red);width:24px;display:inline-flex">${icon.warnzeichen}</span><div class="grow">Warnzeichen</div>${icon.chev}</button>
-    <button class="cell" data-action="rtp-open"><span style="width:24px;text-align:center">✓</span><div class="grow">Return-to-Play-Check<div class="footnote">${rtpKurz()}</div></div>${icon.chev}</button>
+    <button class="cell" data-action="warn-open"><span class="ico rot" aria-hidden="true">${icon.warnzeichen}</span><div class="grow">Warnzeichen</div>${icon.chev}</button>
+    <button class="cell" data-action="rtp-open"><span class="ico gruen" aria-hidden="true">${icon.ziel}</span><div class="grow">Return-to-Play-Check<div class="footnote">${rtpKurz()}</div></div>${icon.chev}</button>
   </div></div>`;
 
   html += `<div class="section"><div class="list"><div class="cell-block">

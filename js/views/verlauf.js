@@ -207,10 +207,10 @@ export function render() {
   const r = R();
   const h = isoDatum();
   const st = status(h);
-  let html = kopf('Verlauf');
-  html += `<button class="btn filled lg mb8" data-action="export">${icon.share}Daten exportieren (CSV)</button>
-    <div class="footnote center mb8">${S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}` : 'Noch nie exportiert.'}</div>
-    <div class="seg mt16 mb8">${BEREICHE.map((b) => `<button data-action="bereich" data-tage="${b.tage}" aria-pressed="${ui.bereich === b.tage}">${b.label}</button>`).join('')}</div>`;
+  const exportText = S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}` : 'Noch nie exportiert · Export oben rechts';
+  let html = kopf('Verlauf', exportText,
+    `<button class="kopf-btn" data-action="export" aria-label="Daten exportieren (CSV)">${icon.share}</button>`);
+  html += `<div class="seg mb8">${BEREICHE.map((b) => `<button data-action="bereich" data-tage="${b.tage}" aria-pressed="${ui.bereich === b.tage}">${b.label}</button>`).join('')}</div>`;
 
   html += `<div class="section"><div class="section-header">Morgentest und Stufe</div><div class="card viz">
     ${ui.tabelle ? morgenTabelle(st, r) : morgenDiagramm(st, r, h)}

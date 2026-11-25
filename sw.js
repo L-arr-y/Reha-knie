@@ -2,7 +2,7 @@
 // Strategie "erst Netz, sonst Speicher": Mit Internet kommt immer die aktuelle Datei (kein Mix aus alten und
 // neuen Dateien nach einem Update); ohne Internet startet die App aus dem Speicher.
 // Bei Code-Änderungen VERSION erhöhen und neue Dateien in DATEIEN eintragen.
-const VERSION = 'reha-v5';
+const VERSION = 'reha-v6';
 const DATEIEN = [
   './',
   './index.html',

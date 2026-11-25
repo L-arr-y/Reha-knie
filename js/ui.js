@@ -19,6 +19,8 @@ export const icon = {
   stop: svg('<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>'),
   video: svg('<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9v6l5-3z" fill="currentColor"/>'),
   phone: svg('<path d="M5 3.5h3.5l1.8 4.5-2.3 1.5a11 11 0 005.5 5.5l1.5-2.3 4.5 1.8V18a2.5 2.5 0 01-2.5 2.5A16 16 0 013.5 6 2.5 2.5 0 015 3.5z"/>'),
+  info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.6" r="1.2" fill="currentColor" stroke="none"/>'),
+  ziel: svg('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),
   share: svg('<path d="M12 3v12M7.5 7.5L12 3l4.5 4.5"/><path d="M5 11v8.5h14V11"/>'),
 };
 
@@ -56,10 +58,10 @@ export function schmerzSkala(action, wert, r, { mitAmpel = true, extra = '' } = 
   return html;
 }
 
-/** Seitenkopf mit großem Titel und Warnzeichen-Knopf oben rechts. */
-export function kopf(titel, untertitel = '') {
-  return `<div class="kopf"><h1 class="large-title">${esc(titel)}</h1>
-    <button class="warn-btn" data-action="warn-open" aria-label="Warnzeichen anzeigen">${icon.warnzeichen}</button></div>
+/** Seitenkopf mit großem Titel, optionalen Knöpfen und Warnzeichen-Knopf oben rechts. */
+export function kopf(titel, untertitel = '', knoepfe = '') {
+  return `<div class="kopf${untertitel ? '' : ' ohne-unter'}"><h1 class="large-title">${esc(titel)}</h1>
+    <div class="kopf-btns">${knoepfe}<button class="warn-btn" data-action="warn-open" aria-label="Warnzeichen anzeigen">${icon.warnzeichen}</button></div></div>
     ${untertitel ? `<p class="subtitle">${untertitel}</p>` : ''}`;
 }
 
@@ -94,10 +96,36 @@ export function openSheet(titel, renderFn) {
       <div class="sheet-content" id="sheet-content"></div>
     </div>`;
   renderSheet();
+  wischenZumSchliessen(root);
   requestAnimationFrame(() => requestAnimationFrame(() => {
     root.querySelector('.backdrop')?.classList.add('open');
     root.querySelector('.sheet')?.classList.add('open');
   }));
+}
+
+/** Sheet nach unten wegwischen (am Griff/Kopf oder wenn der Inhalt ganz oben ist), wie in iOS. */
+function wischenZumSchliessen(root) {
+  const sh = root.querySelector('.sheet');
+  const inhalt = root.querySelector('.sheet-content');
+  let y0 = null; let dy = 0;
+  sh.addEventListener('touchstart', (ev) => {
+    const amKopf = !!ev.target.closest('.sheet-bar');
+    if (!amKopf && inhalt.scrollTop > 0) { y0 = null; return; }
+    if (ev.target.closest('input, textarea, select')) { y0 = null; return; }
+    y0 = ev.touches[0].clientY; dy = 0;
+  }, { passive: true });
+  sh.addEventListener('touchmove', (ev) => {
+    if (y0 === null) return;
+    dy = Math.max(0, ev.touches[0].clientY - y0);
+    if (dy > 4) { sh.classList.add('ziehen'); sh.style.transform = `translateY(${dy}px)`; if (ev.cancelable) ev.preventDefault(); }
+  }, { passive: false });
+  sh.addEventListener('touchend', () => {
+    if (y0 === null) return;
+    y0 = null;
+    sh.classList.remove('ziehen');
+    sh.style.transform = '';
+    if (dy > Math.min(140, sh.offsetHeight * 0.25)) root.querySelector('.btn-done')?.click();
+  });
 }
 
 export function renderSheet() {

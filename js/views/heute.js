@@ -290,7 +290,7 @@ function uebungKarte(e, u, i, r) {
   const fertig = u.erledigt;
   let html = `<div class="ex ${fertig ? 'done' : ''}"><div class="ex-head"><div class="grow">
       <div class="ex-name">${esc(u.name)} ${statusChip(def.status)}</div><div class="ex-dose">${zielText(u, def)}</div></div>
-      ${def.veraltet ? '' : `<button class="info-btn" aria-label="Infos zu ${esc(u.name)}" data-action="uebung-info" data-id="${esc(u.uebungId)}">i</button>`}</div>`;
+      ${def.veraltet ? '' : `<button class="info-btn" aria-label="Infos zu ${esc(u.name)}" data-action="uebung-info" data-id="${esc(u.uebungId)}">${icon.info}</button>`}</div>`;
   if (def.veraltet) html += `<div class="hinweis-box">Diese Übung gibt es in der aktuellen Version nicht mehr (stammt aus einer älteren Einheit). Du kannst sie als erledigt markieren oder die Einheit einfach speichern.</div>`;
 
   if (u.hsrInfo?.gelbGesperrt) html += `<div class="hinweis-box">Gelb: gleiche Sätze und Last wie zuletzt, heute keine Steigerung.</div>`;
