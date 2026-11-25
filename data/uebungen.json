@@ -1,183 +1,1706 @@
 {
-  "_info": "Übungskatalog. Jeder Dosierungswert hat status (gesichert | OFFEN | ergänzend) und quelle. wert = null bedeutet OFFEN: in der App selbst (mit Physio) befüllbar. typ: halten (Timer mit Haltezeit) | wiederholungen | frei (ohne Zählung). suchbegriff/suchbegriff_en werden zu einem YouTube-Suchlink.",
-  "version": 1,
+  "_info": "Übungsbibliothek. kategorie: sehne | unterkoerper | oberkoerper | power | kontakt | prehab | basketball. einheitTyp ordnet die Übung einer Einheit zu. minStufe: ab welcher Sehnenstufe erlaubt (darunter ausgegraut). abWoche/bisWoche: Woche im 8-Wochen-Plan. kniebelastend: wird bei Gelb um den Prozentsatz aus regeln.json gekürzt. mitGewicht: zeigt ein kg-Feld. typ: halten | wiederholungen | dauer | frei. Felder in 'offen' fehlen im Leitfaden (OFFEN) und sind in der App frei eintragbar. abgeleitet: Wert wurde aus dem 8-Wochen-Plan erschlossen, nicht wörtlich genannt. gelbKuerzen: bei Gelb Sätze/Dauer −40 % (abgerundet). nurBelastungstag: ab Stufe 3 nur an Sprung-/Sporttagen. block + proWoche: Häufigkeit pro Woche (Unterkörper). wechsel: HSR-Wechselübung statt einer der drei Standardübungen. pause_max_s: Obergrenze der Pause.",
+  "version": 3,
   "uebungen": [
     {
-      "id": "iso_decline_squat",
-      "name": "Isometrische Kniebeuge auf schräger Ebene",
-      "name_en": "Isometric Decline Squat",
+      "id": "iso_beinpresse",
+      "name": "Isometrie einbeinige Beinpresse (60°)",
+      "kategorie": "sehne",
+      "einheitTyp": "iso",
+      "gruppe": "iso",
+      "standard": true,
       "typ": "halten",
-      "phasen": ["stufe1"],
-      "zielstruktur": "Patellasehne, M. quadriceps femoris",
-      "ausfuehrung": [
-        "Ferse des betroffenen Beins auf eine 20–30° geneigte Fläche stellen.",
-        "Knie bis 60° beugen.",
-        "Position halten."
-      ],
-      "equipment": "Therapiekeil oder Buch (20–30° Neigung)",
+      "minStufe": 1,
+      "kniebelastend": true,
+      "mitGewicht": true,
       "dosierung": {
-        "saetze": { "wert": 5, "text": "5 Sätze", "status": "gesichert", "quelle": "Projektvorgabe 5×45 s (Quellen: 5–10 Sätze), orthopassion; sportärztezeitung" },
-        "haltezeit_s": { "wert": 45, "text": "45 Sekunden halten", "status": "gesichert", "quelle": "orthopassion; sportärztezeitung" },
-        "pause_s": { "wert": 60, "text": "1 Minute Pause", "status": "gesichert", "quelle": "orthopassion" },
-        "einheiten_pro_tag": { "wert_min": 1, "wert_max": 2, "text": "1–2× täglich", "status": "gesichert", "quelle": "Projektvorgabe bei Widerspruch (Quellen: 2× bzw. 2–3× täglich)" }
+        "saetze": 5,
+        "haltezeit_s": 45,
+        "pause_s": 120,
+        "intensitaet": "ca. 70 % der Maximalkraft",
+        "text": "60° Kniebeugung halten"
       },
-      "intensitaet": { "text": "Schmerz bis max. 4–5/10 erlaubt. Übergang zur nächsten Stufe bei ≤ 2–3/10.", "status": "gesichert", "quelle": "orthopassion" },
-      "suchbegriff": "Isometrische Kniebeuge Schrägbrett Patellasehne Übung Anleitung",
-      "suchbegriff_en": "isometric decline squat patellar tendinopathy",
+      "offen": [],
+      "hinweis": "Später auch zum Aufwärmen und zur Schmerzdämpfung vor Training/Spiel.",
+      "suchbegriff": "Isometrie einbeinige Beinpresse 60 Grad Patellasehne",
+      "suchbegriff_en": "isometric single leg press patellar tendinopathy",
       "status": "gesichert",
-      "quelle": "Tendinopathie der Patellasehne (Patellaspitzensyndrom) – orthopassion; Patellaspitzensyndrom – sportärztezeitung"
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 1; Rio et al. 2015"
     },
     {
-      "id": "exz_decline_squat",
-      "name": "Exzentrische Kniebeuge auf schräger Ebene",
-      "name_en": "Eccentric Decline Squat",
-      "typ": "wiederholungen",
-      "phasen": ["stufe2"],
-      "variante": "exzentrik",
-      "zielstruktur": "Patellasehne (Dehnung unter Belastung), M. quadriceps femoris",
-      "ausfuehrung": [
-        "Ferse auf eine 20–30° geneigte Fläche stellen.",
-        "Mit dem betroffenen Bein einbeinig langsam absenken (ca. 3 Sekunden, Zählen 21–22–23) bis 90° (oder 60°).",
-        "Kurz in der Endposition verharren.",
-        "Mit beiden Beinen zurück in die Ausgangsstellung drücken."
-      ],
-      "equipment": "Schrägbrett/Therapiekeil (20–30°) oder dickes Buch, Stuhllehne (optional), später Rucksack/Langhantel als Zusatzgewicht",
+      "id": "iso_beinstrecker",
+      "name": "Isometrie Beinstrecker (60°)",
+      "kategorie": "sehne",
+      "einheitTyp": "iso",
+      "gruppe": "iso",
+      "typ": "halten",
+      "minStufe": 1,
+      "kniebelastend": true,
+      "mitGewicht": true,
       "dosierung": {
-        "saetze": { "wert": 1, "text": "Einstieg 1 Satz, Steigerung auf 2–3 Sätze", "status": "gesichert", "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion" },
-        "wiederholungen": { "wert": 15, "text": "15 Wiederholungen", "status": "gesichert", "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion" },
-        "tempo": { "text": "Ca. 3 s exzentrisch absenken, kurz halten, zügig mit beiden Beinen hoch. (Abweichende TNT-Variante in den Quellen: 4 s exzentrisch / 3 s konzentrisch mit Metronom.)", "status": "gesichert", "quelle": "orthopassion; Exzentrisches Training bei Patellaspitzensyndrom; sportärztezeitung (TNT)" },
-        "pause_s": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "einheiten_pro_tag": { "wert_min": 1, "wert_max": 3, "text": "Einstieg 1× täglich, Steigerung bis 2–3× täglich", "status": "gesichert", "quelle": "Projektvorgabe; Quellenextraktion §3.1a, §6.2" },
-        "zusatzlast_kg": { "wert": null, "text": "Erst nach beschwerdefreien 3×15. Höhe/Schrittweite: OFFEN", "status": "OFFEN", "quelle": "Quellenextraktion §3.1b (nur 'schrittweise', keine Zahl)" }
+        "saetze": 5,
+        "haltezeit_s": 45,
+        "pause_s": 120,
+        "intensitaet": "ca. 70 % der Maximalkraft",
+        "text": "60° Kniebeugung halten"
       },
-      "intensitaet": { "text": "Schmerz bis max. 4–5/10 erlaubt. Bei stärkerem Schmerz Belastung reduzieren.", "status": "gesichert", "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; orthopassion" },
-      "suchbegriff": "Exzentrische Kniebeuge Schrägbrett Decline Squat Patellasehne Übung Anleitung",
-      "suchbegriff_en": "eccentric decline squat patellar tendon",
+      "offen": [],
+      "suchbegriff": "Isometrie Beinstrecker 60 Grad Patellasehne",
+      "suchbegriff_en": "isometric leg extension 60 degrees patellar tendinopathy",
       "status": "gesichert",
-      "quelle": "Exzentrisches Training bei Patellaspitzensyndrom; Tendinopathie der Patellasehne – orthopassion; Patellaspitzensyndrom – sportärztezeitung"
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 1; Rio et al. 2015"
     },
     {
-      "id": "hsr",
-      "name": "Heavy Slow Resistance (HSR)",
-      "name_en": "Heavy Slow Resistance Training",
-      "typ": "wiederholungen",
-      "phasen": ["stufe2"],
-      "variante": "hsr",
-      "zielstruktur": "Patellasehne (Tenozyten-Stimulation), M. quadriceps femoris",
-      "ausfuehrung": [
-        "Langsame isotonische Kräftigungsübungen unter hoher Last, z. B. Beinpresse oder Kniebeugen.",
-        "Konkrete Übungsauswahl: OFFEN – mit Physio festlegen."
-      ],
-      "equipment": "Langhantel, Kraftgeräte (z. B. Beinpresse)",
+      "id": "iso_wandsitz",
+      "name": "Wandsitz einbeinig",
+      "kategorie": "sehne",
+      "einheitTyp": "iso",
+      "gruppe": "iso",
+      "typ": "halten",
+      "minStufe": 1,
+      "kniebelastend": true,
+      "mitGewicht": false,
       "dosierung": {
-        "saetze": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "wiederholungen": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "last": { "wert": null, "text": "OFFEN – nur 'hohe Last' in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "tempo": { "wert": null, "text": "OFFEN – nur 'langsam kontrolliert' (Beispiel TNT: 4 s exzentrisch / 3 s konzentrisch)", "status": "OFFEN", "quelle": "sportärztezeitung" },
-        "pause_s": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "einheiten_pro_woche": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" }
+        "saetze": 5,
+        "haltezeit_s": 45,
+        "pause_s": 120,
+        "intensitaet": "ca. 70 % der Maximalkraft",
+        "text": "Alternative zu Beinpresse/Beinstrecker"
       },
-      "intensitaet": { "text": "Hohe Lasten. Konkrete Werte OFFEN.", "status": "OFFEN", "quelle": "sportärztezeitung" },
-      "suchbegriff": "Heavy Slow Resistance Patellasehne Beinpresse Übung",
-      "suchbegriff_en": "heavy slow resistance patellar tendinopathy",
-      "status": "OFFEN",
-      "quelle": "Patellaspitzensyndrom – sportärztezeitung; Jumper's knee: Progressive Sehnenbelastung bei Patellaspitzensyndrom besser als exzentrisches Training"
+      "offen": [],
+      "suchbegriff": "Wandsitz einbeinig Patellasehne isometrisch",
+      "suchbegriff_en": "single leg wall sit patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 1"
     },
     {
-      "id": "box_jumps",
+      "id": "iso_spanish_squat",
+      "name": "Spanish Squat",
+      "kategorie": "sehne",
+      "einheitTyp": "iso",
+      "gruppe": "iso",
+      "typ": "halten",
+      "minStufe": 1,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 5,
+        "haltezeit_s": 45,
+        "pause_s": 120,
+        "intensitaet": "ca. 70 % der Maximalkraft",
+        "text": "Alternative mit Band hinter den Knien"
+      },
+      "offen": [],
+      "suchbegriff": "Spanish Squat Patellasehne Anleitung",
+      "suchbegriff_en": "spanish squat patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 1"
+    },
+    {
+      "id": "hsr_beinpresse",
+      "name": "Beinpresse (HSR)",
+      "kategorie": "sehne",
+      "einheitTyp": "hsr",
+      "typ": "wiederholungen",
+      "minStufe": 2,
+      "kniebelastend": true,
+      "mitGewicht": true,
+      "hsr": true,
+      "dosierung": {
+        "saetze": 4,
+        "wdh": 15,
+        "tempo": "3 s runter, 3 s hoch",
+        "text": "Start 4 × 15 im Bereich 10–60°, Progression bis 4 × 6 bis ca. 90° Beugung",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Heavy Slow Resistance Beinpresse Patellasehne",
+      "suchbegriff_en": "heavy slow resistance leg press patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 2; Ergänzung Reha-Modul: 3 Übungen wie in der Studie Kongsgaard 2009"
+    },
+    {
+      "id": "hsr_kniebeuge",
+      "name": "Kniebeuge (HSR)",
+      "kategorie": "sehne",
+      "einheitTyp": "hsr",
+      "typ": "wiederholungen",
+      "minStufe": 2,
+      "kniebelastend": true,
+      "mitGewicht": true,
+      "hsr": true,
+      "dosierung": {
+        "saetze": 4,
+        "wdh": 15,
+        "tempo": "3 s runter, 3 s hoch",
+        "text": "Start 4 × 15 im Bereich 10–60°, Progression bis 4 × 6 bis ca. 90° Beugung",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Kniebeuge langsam Heavy Slow Resistance Patellasehne",
+      "suchbegriff_en": "back squat heavy slow resistance patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 2; Ergänzung Reha-Modul: 3 Übungen wie in der Studie Kongsgaard 2009"
+    },
+    {
+      "id": "hsr_hackenschmidt",
+      "name": "Hackenschmidt (HSR)",
+      "kategorie": "sehne",
+      "einheitTyp": "hsr",
+      "typ": "wiederholungen",
+      "minStufe": 2,
+      "kniebelastend": true,
+      "mitGewicht": true,
+      "hsr": true,
+      "dosierung": {
+        "saetze": 4,
+        "wdh": 15,
+        "tempo": "3 s runter, 3 s hoch",
+        "text": "Start 4 × 15 im Bereich 10–60°, Progression bis 4 × 6 bis ca. 90° Beugung",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Hackenschmidt Kniebeuge Maschine Anleitung",
+      "suchbegriff_en": "hack squat machine technique",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 2; Ergänzung Reha-Modul: 3 Übungen wie in der Studie Kongsgaard 2009"
+    },
+    {
+      "id": "hsr_beinstrecker",
+      "name": "Beinstrecker (HSR)",
+      "kategorie": "sehne",
+      "einheitTyp": "hsr",
+      "typ": "wiederholungen",
+      "minStufe": 2,
+      "kniebelastend": true,
+      "mitGewicht": true,
+      "hsr": true,
+      "dosierung": {
+        "saetze": 4,
+        "wdh": 15,
+        "tempo": "3 s runter, 3 s hoch",
+        "text": "Start 4 × 15 im Bereich 10–60°, Progression bis 4 × 6",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Beinstrecker langsam Heavy Slow Resistance Patellasehne",
+      "suchbegriff_en": "leg extension heavy slow resistance patellar tendinopathy",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 2; Ergänzung Reha-Modul: Wechselübung für eine der drei, nicht zusätzlich",
+      "wechsel": true
+    },
+    {
+      "id": "hsr_split_squat",
+      "name": "Bulgarian Split Squat (HSR)",
+      "kategorie": "sehne",
+      "einheitTyp": "hsr",
+      "typ": "wiederholungen",
+      "minStufe": 2,
+      "kniebelastend": true,
+      "mitGewicht": true,
+      "hsr": true,
+      "dosierung": {
+        "saetze": 4,
+        "wdh": 15,
+        "tempo": "3 s runter, 3 s hoch",
+        "text": "Zählt als HSR-Übung, selbes Schema 4 × 15 → 4 × 6; ab Woche 3",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Bulgarian Split Squat Anleitung Knie",
+      "suchbegriff_en": "bulgarian split squat slow tempo patellar tendon",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 2; Ergänzung Reha-Modul: Wechselübung für eine der drei, nicht zusätzlich",
+      "wechsel": true,
+      "abWoche": 3
+    },
+    {
+      "id": "test_beinpresse_einbeinig",
+      "name": "Einbeinige Beinpresse – Stufe-3-Test",
+      "kategorie": "sehne",
+      "einheitTyp": "hsr",
+      "optional": true,
+      "typ": "wiederholungen",
+      "minStufe": 2,
+      "kniebelastend": true,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 4,
+        "wdh": 8,
+        "text": "4 × 8 mit ca. 150 % Körpergewicht, seitengleich (Kriterium für Stufe 3)",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "einbeinige Beinpresse Anleitung",
+      "suchbegriff_en": "single leg press technique",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne; klinische Empfehlung Malliaras/Cook (NISMAT), keine RCT"
+    },
+    {
+      "id": "sp_squat_jumps",
+      "name": "Squat Jumps",
+      "kategorie": "sehne",
+      "einheitTyp": "sprung",
+      "typ": "wiederholungen",
+      "minStufe": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "sprung": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 10,
+        "text": "3 × 10 beidbeinig → bis 6 × 10 einbeinig",
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Squat Jumps Anleitung Landung Knie",
+      "suchbegriff_en": "squat jump landing technique",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 3; Pause: Ergänzung Reha-Modul",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "sp_box_jumps",
       "name": "Box Jumps",
-      "name_en": "Box Jumps",
+      "kategorie": "sehne",
+      "einheitTyp": "sprung",
       "typ": "wiederholungen",
-      "phasen": ["stufe3"],
-      "plyometrie": true,
-      "zielstruktur": "Patellasehne (Dehnungs-Verkürzungs-Zyklus), Ober- und Unterschenkelmuskulatur",
-      "ausfuehrung": [
-        "Explosiver Sprung auf eine Plattform/Sprungbox.",
-        "Kurze Bodenkontaktzeiten."
-      ],
-      "equipment": "Sprungbox/Plattform (30–60 cm)",
+      "minStufe": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "sprung": true,
       "dosierung": {
-        "saetze": { "wert": 3, "wert_max": 5, "text": "3–5 Sätze", "status": "ergänzend", "quelle": "Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)" },
-        "wiederholungen": { "wert": 6, "wert_max": 8, "text": "6–8 Wiederholungen", "status": "ergänzend", "quelle": "Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)" },
-        "pause_s": { "wert": 120, "text": "ca. 2 Minuten", "status": "ergänzend", "quelle": "Quellenextraktion §2 [13] (schwache Quellenlage)" },
-        "einheiten_pro_woche": { "wert": 2, "text": "höchstens 2× pro Woche", "status": "ergänzend", "quelle": "Projektvorgabe; Fit-Connect" }
+        "saetze": 3,
+        "wdh": 10,
+        "text": "3 × 10 beidbeinig → bis 6 × 10 einbeinig",
+        "pause_s": 60,
+        "pause_max_s": 90
       },
-      "intensitaet": { "text": "Explosiv. Bei Muskelkater/Ermüdung auslassen.", "status": "ergänzend", "quelle": "Fit-Connect; Quellenextraktion §3.2b" },
-      "suchbegriff": "Box Jump Patellasehne Reha Übung Anleitung",
-      "suchbegriff_en": "box jump plyometric rehab patellar tendinopathy",
-      "status": "ergänzend",
-      "quelle": "Sprungkrafttraining Basketball – Fit-Connect; Jumper's knee: Progressive Sehnenbelastung … (Stufe 3 allgemein)"
+      "offen": [],
+      "suchbegriff": "Box Jumps Anleitung Landung",
+      "suchbegriff_en": "box jump technique landing",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 3; Pause: Ergänzung Reha-Modul",
+      "gelbKuerzen": true
     },
     {
-      "id": "depth_jumps",
-      "name": "Depth Jumps",
-      "name_en": "Depth Jumps",
+      "id": "sp_pogo_hops",
+      "name": "Pogo-Hops",
+      "kategorie": "sehne",
+      "einheitTyp": "sprung",
       "typ": "wiederholungen",
-      "phasen": ["stufe3"],
-      "plyometrie": true,
-      "zielstruktur": "Patellasehne (Dehnungs-Verkürzungs-Zyklus), Ober- und Unterschenkelmuskulatur",
-      "ausfuehrung": [
-        "Von einer Box absteigen/abspringen.",
-        "Nach der Landung sofort reaktiv nach oben springen."
-      ],
-      "equipment": "Sprungbox/Plattform (30–60 cm)",
+      "minStufe": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "sprung": true,
       "dosierung": {
-        "saetze": { "wert": null, "text": "OFFEN – Satzzahl nur für Box Jumps genannt", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "wiederholungen": { "wert": 3, "wert_max": 5, "text": "3–5 Wiederholungen", "status": "ergänzend", "quelle": "Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)" },
-        "pause_s": { "wert": 120, "text": "ca. 2 Minuten", "status": "ergänzend", "quelle": "Quellenextraktion §2 [13] (schwache Quellenlage)" },
-        "einheiten_pro_woche": { "wert": 2, "text": "höchstens 2× pro Woche", "status": "ergänzend", "quelle": "Projektvorgabe; Fit-Connect" }
+        "saetze": 3,
+        "wdh": 10,
+        "text": "3 × 10 beidbeinig → bis 6 × 10 einbeinig",
+        "pause_s": 60,
+        "pause_max_s": 90
       },
-      "intensitaet": { "text": "Explosiv. Bei Muskelkater/Ermüdung auslassen.", "status": "ergänzend", "quelle": "Fit-Connect; Quellenextraktion §3.2b" },
-      "suchbegriff": "Depth Jump Patellasehne Reha Übung Anleitung",
-      "suchbegriff_en": "depth jump plyometric rehab patellar tendinopathy",
+      "offen": [],
+      "suchbegriff": "Pogo Hops Übung Anleitung",
+      "suchbegriff_en": "pogo hops exercise",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 3; Pause: Ergänzung Reha-Modul",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "sp_landen",
+      "name": "Landungen üben",
+      "kategorie": "sehne",
+      "einheitTyp": "sprung",
+      "typ": "wiederholungen",
+      "minStufe": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "sprung": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 10,
+        "text": "3 × 10 beidbeinig → bis 6 × 10 einbeinig",
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Landung üben Sprung Knie Reha Anleitung",
+      "suchbegriff_en": "landing drills knee rehab",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 3; Pause: Ergänzung Reha-Modul",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "sp_antritte",
+      "name": "Antritte",
+      "kategorie": "sehne",
+      "einheitTyp": "sprung",
+      "typ": "wiederholungen",
+      "minStufe": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "sprung": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 10,
+        "text": "3 × 10 → bis 6 × 10",
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Antritte Beschleunigung Übung Basketball",
+      "suchbegriff_en": "acceleration starts drill basketball",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 3; Pause: Ergänzung Reha-Modul",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "sp_richtungswechsel",
+      "name": "Richtungswechsel",
+      "kategorie": "sehne",
+      "einheitTyp": "sprung",
+      "typ": "wiederholungen",
+      "minStufe": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "sprung": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 10,
+        "text": "3 × 10 → bis 6 × 10",
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Richtungswechsel Übung Basketball Agility",
+      "suchbegriff_en": "change of direction drill basketball",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 3; Pause: Ergänzung Reha-Modul",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "uk_waden_stehend",
+      "name": "Wadenheben einbeinig stehend",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "waden",
+      "proWoche": {
+        "min": 2,
+        "max": 3
+      },
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 10,
+        "wdh_max": 15,
+        "tempo": "langsam",
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Wadenheben einbeinig stehend Anleitung",
+      "suchbegriff_en": "single leg standing calf raise",
       "status": "ergänzend",
-      "quelle": "Sprungkrafttraining Basketball – Fit-Connect"
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
     },
     {
-      "id": "dehnen_oberschenkel",
-      "name": "Dehnen Oberschenkel (Quadrizeps & Hamstrings)",
-      "name_en": "Quadriceps and Hamstring Stretching",
-      "typ": "frei",
-      "phasen": ["stufe1", "stufe2", "stufe3", "stufe4"],
-      "begleitend": true,
-      "zielstruktur": "M. quadriceps femoris, Hamstrings, Hüftbeuger",
-      "ausfuehrung": [
-        "Statische und dynamische Dehnung der Oberschenkelvorder- und -rückseite sowie der Hüftbeuger.",
-        "Ziel: weniger Zug am Patellasehnenansatz."
-      ],
-      "equipment": "Keine (ggf. Matte)",
-      "dosierung": {
-        "saetze": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "haltezeit_s": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" },
-        "haeufigkeit": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" }
+      "id": "uk_waden_sitzend",
+      "name": "Wadenheben sitzend",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "waden",
+      "proWoche": {
+        "min": 2,
+        "max": 3
       },
-      "intensitaet": { "text": "Bis zu einem leichten Dehnreiz ohne starken Schmerz.", "status": "gesichert", "quelle": "Patellaspitzensyndrom: Symptome, Ursachen und Therapien" },
-      "suchbegriff": "Quadrizeps Hamstrings dehnen Patellasehne Übung Anleitung",
-      "suchbegriff_en": "quad hamstring stretch patellar tendinopathy",
-      "status": "gesichert",
-      "quelle": "Patellaspitzensyndrom: Symptome, Ursachen und Therapien; Patellaspitzensyndrom – sportärztezeitung"
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 10,
+        "wdh_max": 15,
+        "tempo": "langsam",
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Wadenheben sitzend Maschine Anleitung",
+      "suchbegriff_en": "seated calf raise",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
     },
     {
-      "id": "faszienrolle",
-      "name": "Faszienrolle (Selbstmassage Beine)",
-      "name_en": "Foam Rolling",
-      "typ": "frei",
-      "phasen": ["stufe1", "stufe2", "stufe3", "stufe4"],
-      "begleitend": true,
-      "zielstruktur": "Gesamte Beinmuskulatur (Oberschenkel vorne/hinten, Waden)",
-      "ausfuehrung": [
-        "Beinmuskulatur vom Oberschenkel bis zur Wade gründlich und langsam ausrollen."
-      ],
-      "equipment": "Faszienrolle",
-      "dosierung": {
-        "haeufigkeit": { "wert": null, "text": "Alle 2–3 Tage oder nach dem Training", "status": "gesichert", "quelle": "orthopassion" },
-        "dauer_min": { "wert": null, "text": "OFFEN – nicht in den Quellen", "status": "OFFEN", "quelle": "Quellenextraktion §2" }
+      "id": "uk_hip_thrust",
+      "name": "Hip Thrust einbeinig",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "huefte",
+      "proWoche": {
+        "min": 2,
+        "max": 2
       },
-      "intensitaet": { "text": "Tolerierbarer Massagedruck.", "status": "gesichert", "quelle": "orthopassion" },
-      "suchbegriff": "Faszienrolle Oberschenkel Wade Patellasehne Anleitung",
-      "suchbegriff_en": "foam rolling quads patellar tendon",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 12,
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Hip Thrust einbeinig Anleitung",
+      "suchbegriff_en": "single leg hip thrust",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_copenhagen",
+      "name": "Copenhagen-Seitstütz",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "huefte",
+      "proWoche": {
+        "min": 2,
+        "max": 2
+      },
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "dauer_s": 20,
+        "dauer_max_s": 30,
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Copenhagen Seitstütz Adduktoren Anleitung",
+      "suchbegriff_en": "copenhagen plank",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_band_abduktion",
+      "name": "Band-Abduktion",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "huefte",
+      "proWoche": {
+        "min": 2,
+        "max": 2
+      },
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 2,
+        "wdh": 15,
+        "pause_s": 60,
+        "pause_max_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Hüftabduktion Band Übung",
+      "suchbegriff_en": "banded hip abduction",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_rdl",
+      "name": "Rumänisches Kreuzheben",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "hamstrings",
+      "proWoche": {
+        "min": 2,
+        "max": 2
+      },
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "pause_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Rumänisches Kreuzheben Anleitung",
+      "suchbegriff_en": "romanian deadlift technique",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_nordic",
+      "name": "Nordic Curls",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "hamstrings",
+      "proWoche": {
+        "min": 2,
+        "max": 2
+      },
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 2,
+        "saetze_max": 3,
+        "wdh": 4,
+        "wdh_max": 6,
+        "pause_s": 90
+      },
+      "offen": [],
+      "suchbegriff": "Nordic Curls Anleitung Anfänger",
+      "suchbegriff_en": "nordic hamstring curl progression",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_dead_bug",
+      "name": "Dead Bug (Rumpf)",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "rumpf",
+      "proWoche": {
+        "min": 2,
+        "max": 3
+      },
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 2,
+        "saetze_max": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "text": "2–3 × 30–45 s oder 8–10 Wdh.",
+        "pause_s": 45,
+        "pause_max_s": 60
+      },
+      "offen": [],
+      "suchbegriff": "Dead Bug Übung Anleitung",
+      "suchbegriff_en": "dead bug exercise",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_pallof",
+      "name": "Pallof Press (Rumpf)",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "rumpf",
+      "proWoche": {
+        "min": 2,
+        "max": 3
+      },
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 2,
+        "saetze_max": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "text": "2–3 × 30–45 s oder 8–10 Wdh.",
+        "pause_s": 45,
+        "pause_max_s": 60
+      },
+      "offen": [],
+      "suchbegriff": "Pallof Press Anleitung",
+      "suchbegriff_en": "pallof press",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_seitstuetz",
+      "name": "Seitstütz",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "block": "rumpf",
+      "proWoche": {
+        "min": 2,
+        "max": 3
+      },
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 2,
+        "saetze_max": 3,
+        "dauer_s": 30,
+        "dauer_max_s": 45,
+        "pause_s": 45,
+        "pause_max_s": 60
+      },
+      "offen": [],
+      "suchbegriff": "Seitstütz richtig ausführen",
+      "suchbegriff_en": "side plank",
+      "status": "ergänzend",
+      "quelle": "Ergänzung Reha-Modul (übliche Trainingswerte, keine Studienbasis zur Patellasehne)"
+    },
+    {
+      "id": "uk_sprints",
+      "name": "Sprints 20–30 m",
+      "kategorie": "unterkoerper",
+      "einheitTyp": "uk",
+      "typ": "wiederholungen",
+      "minStufe": 3,
+      "abWoche": 5,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "strecke": "20–30 m Antritt",
+        "saetze": 6,
+        "pause_s": 60,
+        "pause_max_s": 90,
+        "text": "W5: 6 × bei 70 % · W6: 8 × bei 80–90 % · ab W7: Cuts dazu",
+        "nachWoche": {
+          "5": {
+            "saetze": 6,
+            "intensitaet": "ca. 70 %"
+          },
+          "6": {
+            "saetze": 8,
+            "intensitaet": "80–90 %"
+          },
+          "7": {
+            "saetze": 8,
+            "intensitaet": "80–90 %, mit Cuts"
+          },
+          "8": {
+            "saetze": 8,
+            "intensitaet": "80–90 %, mit Cuts"
+          }
+        }
+      },
+      "offen": [],
+      "suchbegriff": "Sprinttraining Basketball Antritte",
+      "suchbegriff_en": "sprint training basketball",
+      "status": "ergänzend",
+      "quelle": "Leitfaden: 8-Wochen-Plan (Sprint-Intensität); Ergänzung Reha-Modul (Anzahl, Strecke, Pause, nur an Sprungtagen)",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true,
+      "nurBelastungstag": true
+    },
+    {
+      "id": "ok_bankdruecken",
+      "name": "Kurzhantel-Bankdrücken",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_a",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "intensitaet": "2–3 Wiederholungen in Reserve (RIR)",
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Kurzhantel Bankdrücken Anleitung",
+      "suchbegriff_en": "dumbbell bench press",
       "status": "gesichert",
-      "quelle": "Tendinopathie der Patellasehne (Patellaspitzensyndrom) – orthopassion"
+      "quelle": "Leitfaden: Oberkörper, Grundkraft A"
+    },
+    {
+      "id": "ok_rudern",
+      "name": "Einarmiges Rudern",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_a",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "intensitaet": "2–3 RIR",
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Einarmiges Kurzhantelrudern Anleitung",
+      "suchbegriff_en": "single arm dumbbell row",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft A"
+    },
+    {
+      "id": "ok_landmine",
+      "name": "Landmine Press",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_a",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "intensitaet": "2–3 RIR",
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Landmine Press Anleitung",
+      "suchbegriff_en": "landmine press",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft A"
+    },
+    {
+      "id": "ok_face_pulls",
+      "name": "Face Pulls",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_a",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "intensitaet": "2–3 RIR",
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Face Pulls Kabelzug Anleitung",
+      "suchbegriff_en": "face pull cable",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft A"
+    },
+    {
+      "id": "ok_pallof",
+      "name": "Pallof Press",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_a",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 10,
+        "intensitaet": "2–3 RIR",
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Pallof Press Anleitung",
+      "suchbegriff_en": "pallof press",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft A"
+    },
+    {
+      "id": "ok_klimmzuege",
+      "name": "Klimmzüge oder Latzug",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_b",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 12,
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Klimmzüge Latzug Anleitung",
+      "suchbegriff_en": "pull up lat pulldown",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft B"
+    },
+    {
+      "id": "ok_liegestuetze_last",
+      "name": "Liegestütze mit Zusatzlast",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_b",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 12,
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Liegestütze mit Zusatzgewicht Anleitung",
+      "suchbegriff_en": "weighted push up",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft B"
+    },
+    {
+      "id": "ok_aussenrotation_kabel",
+      "name": "Kabel-Außenrotation",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_b",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 12,
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Außenrotation Kabelzug Schulter Anleitung",
+      "suchbegriff_en": "cable external rotation",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft B"
+    },
+    {
+      "id": "ok_farmers_carry",
+      "name": "Farmer's Carry",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_b",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 12,
+        "text": "Leitfaden nennt 3 × 8–12 für den ganzen Block; Strecke/Zeit beim Tragen mit Physio festlegen",
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [
+        "dauer_s"
+      ],
+      "suchbegriff": "Farmers Carry Anleitung",
+      "suchbegriff_en": "farmers carry",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft B"
+    },
+    {
+      "id": "ok_dead_bug",
+      "name": "Dead Bug",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_b",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "bisWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "wdh": 8,
+        "wdh_max": 12,
+        "pause_s": 90,
+        "pause_max_s": 120
+      },
+      "offen": [],
+      "suchbegriff": "Dead Bug Übung Anleitung",
+      "suchbegriff_en": "dead bug exercise",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Grundkraft B"
+    },
+    {
+      "id": "pw_brustpass",
+      "name": "Brustpass gegen die Wand (Medizinball)",
+      "kategorie": "power",
+      "einheitTyp": "ok_power",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 3,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "saetze_max": 4,
+        "wdh": 5,
+        "wdh_max": 6,
+        "intensitaet": "volle Geschwindigkeit, volle Pause; Medizinball 3–5 kg",
+        "text": "Ab Woche 3 im Stand, ab Woche 5 mit Schritt. Varianten mit Sprung/einbeiniger Landung erst ab Sehnenstufe 3.",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Medizinball Brustpass Wand Übung",
+      "suchbegriff_en": "medicine ball chest pass wall",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Power"
+    },
+    {
+      "id": "pw_rotationswurf",
+      "name": "Rotationswürfe seitlich (Medizinball)",
+      "kategorie": "power",
+      "einheitTyp": "ok_power",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 3,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "saetze_max": 4,
+        "wdh": 5,
+        "wdh_max": 6,
+        "intensitaet": "volle Geschwindigkeit, volle Pause",
+        "text": "Ab Woche 3 im Stand, ab Woche 5 mit Schritt.",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Medizinball Rotationswurf seitlich Wand",
+      "suchbegriff_en": "medicine ball rotational throw",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Power"
+    },
+    {
+      "id": "pw_overhead_slam",
+      "name": "Overhead-Slam im Stand",
+      "kategorie": "power",
+      "einheitTyp": "ok_power",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 3,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "saetze_max": 4,
+        "wdh": 5,
+        "wdh_max": 6,
+        "intensitaet": "volle Geschwindigkeit, volle Pause",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Medizinball Slam Anleitung",
+      "suchbegriff_en": "medicine ball overhead slam",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Power"
+    },
+    {
+      "id": "pw_explosive_liegestuetze",
+      "name": "Explosive Liegestütze",
+      "kategorie": "power",
+      "einheitTyp": "ok_power",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 3,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "saetze_max": 4,
+        "wdh": 5,
+        "wdh_max": 6,
+        "intensitaet": "volle Geschwindigkeit, volle Pause",
+        "pause_s": 120,
+        "pause_max_s": 180
+      },
+      "offen": [],
+      "suchbegriff": "Explosive Liegestütze Anleitung",
+      "suchbegriff_en": "explosive push up",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Power"
+    },
+    {
+      "id": "kt_partner_bumps",
+      "name": "Partner-Bumps im Stand",
+      "kategorie": "kontakt",
+      "einheitTyp": "ok_kontakt",
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 5,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "dauer_s": 20,
+        "dauer_max_s": 30,
+        "text": "Ab Woche 5 ohne Sprung, ab Woche 7 mit Sprung (dann erst ab Sehnenstufe 3)."
+      },
+      "offen": [
+        "pause_s"
+      ],
+      "suchbegriff": "Basketball Kontakttraining Partner Bump Übung",
+      "suchbegriff_en": "basketball contact bump drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Kontaktkraft"
+    },
+    {
+      "id": "kt_ball_reissen",
+      "name": "Ball-Reißen (Rip)",
+      "kategorie": "kontakt",
+      "einheitTyp": "ok_kontakt",
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 5,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "dauer_s": 20,
+        "dauer_max_s": 30
+      },
+      "offen": [
+        "pause_s"
+      ],
+      "suchbegriff": "Basketball Rip Through Ball Sichern Übung",
+      "suchbegriff_en": "basketball rip drill strength",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Kontaktkraft"
+    },
+    {
+      "id": "kt_offset_carry",
+      "name": "Offset-Carries",
+      "kategorie": "kontakt",
+      "einheitTyp": "ok_kontakt",
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 5,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 3,
+        "dauer_s": 20,
+        "dauer_max_s": 30
+      },
+      "offen": [
+        "pause_s"
+      ],
+      "suchbegriff": "Offset Carry einseitig tragen Übung",
+      "suchbegriff_en": "offset carry",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Kontaktkraft"
+    },
+    {
+      "id": "kt_anti_rotation",
+      "name": "Anti-Rotation unter Stoß",
+      "kategorie": "kontakt",
+      "einheitTyp": "ok_kontakt",
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 5,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "dauer_s": 20,
+        "dauer_max_s": 30
+      },
+      "offen": [
+        "pause_s"
+      ],
+      "suchbegriff": "Anti Rotation Partner Stoß Rumpf Übung",
+      "suchbegriff_en": "anti rotation perturbation core",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Kontaktkraft"
+    },
+    {
+      "id": "kt_abschluss_pad",
+      "name": "Abschluss gegen Pad",
+      "kategorie": "kontakt",
+      "einheitTyp": "ok_kontakt",
+      "typ": "dauer",
+      "minStufe": 1,
+      "abWoche": 5,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 3,
+        "dauer_s": 20,
+        "dauer_max_s": 30,
+        "text": "Ab Woche 5 ohne Sprung; mit Sprung erst ab Woche 7 und Sehnenstufe 3."
+      },
+      "offen": [
+        "pause_s"
+      ],
+      "suchbegriff": "Basketball Finishing gegen Pad Kontakt",
+      "suchbegriff_en": "basketball finishing through contact pad",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Kontaktkraft"
+    },
+    {
+      "id": "ph_aussenrotation",
+      "name": "Außenrotation (Schulter-Prehab)",
+      "kategorie": "prehab",
+      "einheitTyp": "prehab",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 2,
+        "wdh": 12,
+        "wdh_max": 15,
+        "text": "Als Aufwärmen",
+        "pause_s": 30,
+        "pause_max_s": 45
+      },
+      "offen": [],
+      "suchbegriff": "Schulter Außenrotation Band Aufwärmen",
+      "suchbegriff_en": "shoulder external rotation band warm up",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Schulter-Prehab"
+    },
+    {
+      "id": "ph_ytw",
+      "name": "Y-T-W",
+      "kategorie": "prehab",
+      "einheitTyp": "prehab",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 2,
+        "wdh": 12,
+        "wdh_max": 15,
+        "text": "Als Aufwärmen",
+        "pause_s": 30,
+        "pause_max_s": 45
+      },
+      "offen": [],
+      "suchbegriff": "Y T W Übung Schulter Anleitung",
+      "suchbegriff_en": "YTW shoulder exercise",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Schulter-Prehab"
+    },
+    {
+      "id": "ph_serratus",
+      "name": "Serratus-Wall-Slides",
+      "kategorie": "prehab",
+      "einheitTyp": "prehab",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 2,
+        "wdh": 12,
+        "wdh_max": 15,
+        "text": "Als Aufwärmen",
+        "pause_s": 30,
+        "pause_max_s": 45
+      },
+      "offen": [],
+      "suchbegriff": "Serratus Wall Slides Anleitung",
+      "suchbegriff_en": "serratus wall slide",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Schulter-Prehab"
+    },
+    {
+      "id": "er_druck",
+      "name": "Erhaltung: Druckübung",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_erhaltung",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 7,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 1,
+        "saetze_max": 2,
+        "text": "Eine Druckübung, z. B. aus Grundkraft A/B"
+      },
+      "offen": [
+        "uebung",
+        "wdh",
+        "pause_s"
+      ],
+      "suchbegriff": "Kurzhantel Bankdrücken Anleitung",
+      "suchbegriff_en": "dumbbell bench press",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Erhaltung"
+    },
+    {
+      "id": "er_zug",
+      "name": "Erhaltung: Zugübung",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_erhaltung",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 7,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 1,
+        "saetze_max": 2,
+        "text": "Eine Zugübung, z. B. Rudern oder Klimmzug"
+      },
+      "offen": [
+        "uebung",
+        "wdh",
+        "pause_s"
+      ],
+      "suchbegriff": "Einarmiges Kurzhantelrudern Anleitung",
+      "suchbegriff_en": "single arm dumbbell row",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Erhaltung"
+    },
+    {
+      "id": "er_rotation",
+      "name": "Erhaltung: Rotationsübung",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_erhaltung",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 7,
+      "kniebelastend": false,
+      "mitGewicht": true,
+      "dosierung": {
+        "saetze": 1,
+        "saetze_max": 2,
+        "text": "Eine Rotationsübung, z. B. Rotationswurf"
+      },
+      "offen": [
+        "uebung",
+        "wdh",
+        "pause_s"
+      ],
+      "suchbegriff": "Medizinball Rotationswurf seitlich Wand",
+      "suchbegriff_en": "medicine ball rotational throw",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Erhaltung"
+    },
+    {
+      "id": "er_rumpf",
+      "name": "Erhaltung: Rumpfübung",
+      "kategorie": "oberkoerper",
+      "einheitTyp": "ok_erhaltung",
+      "typ": "wiederholungen",
+      "minStufe": 1,
+      "abWoche": 7,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "saetze": 1,
+        "saetze_max": 2,
+        "text": "Eine Rumpfübung, z. B. Pallof Press oder Dead Bug"
+      },
+      "offen": [
+        "uebung",
+        "wdh",
+        "pause_s"
+      ],
+      "suchbegriff": "Pallof Press Anleitung",
+      "suchbegriff_en": "pallof press",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Oberkörper, Erhaltung"
+    },
+    {
+      "id": "bb_wurf_stand",
+      "name": "Wurftechnik im Stand",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Ohne Sprünge"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Wurftechnik Form Shooting Übung",
+      "suchbegriff_en": "basketball form shooting drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 1",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_dribbling",
+      "name": "Dribbling ohne Sprünge",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 1,
+      "abWoche": 1,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Im Stand / ohne Sprünge"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Dribbling Übungen im Stand",
+      "suchbegriff_en": "stationary ball handling drills",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 1",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_freiwuerfe",
+      "name": "Freiwürfe",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 1,
+      "abWoche": 2,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "Freiwurf Technik Basketball",
+      "suchbegriff_en": "free throw technique",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 2",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_ballhandling",
+      "name": "Ballhandling",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 1,
+      "abWoche": 2,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Ballhandling Übungen",
+      "suchbegriff_en": "basketball ball handling drills",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 2",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_lockeres_laufen",
+      "name": "Lockeres Laufen",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 2,
+      "abWoche": 2,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "lockeres Laufen nach Knieverletzung Wiedereinstieg",
+      "suchbegriff_en": "return to running after knee injury",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 2",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_wurf_kurz",
+      "name": "Wurf aus kurzer Distanz",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 2,
+      "abWoche": 3,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Wurf kurze Distanz Übung",
+      "suchbegriff_en": "close range shooting drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 3",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_defense_stance",
+      "name": "Defense-Stance ohne Tempo",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 2,
+      "abWoche": 3,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Ohne Tempo"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Defense Stance Technik",
+      "suchbegriff_en": "basketball defensive stance",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 3",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_shooting_volumen",
+      "name": "Shooting-Volumen steigern",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 2,
+      "abWoche": 4,
+      "kniebelastend": false,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [
+        "wuerfe"
+      ],
+      "suchbegriff": "Basketball Shooting Workout",
+      "suchbegriff_en": "basketball shooting workout",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 4",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_layups_beidbeinig",
+      "name": "Lay-ups (beidbeinig abspringen)",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 3,
+      "abWoche": 5,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Beidbeinig abspringen"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Layup Technik",
+      "suchbegriff_en": "basketball layup technique",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 5",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_slides",
+      "name": "Defense-Slides (leicht)",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 3,
+      "abWoche": 5,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Leicht"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Defensive Slides Übung",
+      "suchbegriff_en": "basketball defensive slides drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 5",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_layups_jumpshots",
+      "name": "Lay-ups und Jumpshots",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 3,
+      "abWoche": 6,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Jumpshot Technik",
+      "suchbegriff_en": "basketball jump shot technique",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 6",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_close_outs",
+      "name": "Close-outs",
+      "kategorie": "basketball",
+      "einheitTyp": "basketball",
+      "typ": "frei",
+      "minStufe": 3,
+      "abWoche": 6,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Close Out Drill",
+      "suchbegriff_en": "basketball closeout drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 6",
+      "abgeleitet": [
+        "minStufe"
+      ],
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_rebound",
+      "name": "Rebound-Sprünge",
+      "kategorie": "basketball",
+      "einheitTyp": "sport",
+      "typ": "frei",
+      "minStufe": 4,
+      "abWoche": 7,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Erst Technik, dann Intensität, dann Kontakt"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Rebound Training Sprung",
+      "suchbegriff_en": "basketball rebounding drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 4",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_teamtraining_ohne",
+      "name": "Teamtraining ohne Kontakt",
+      "kategorie": "basketball",
+      "einheitTyp": "sport",
+      "typ": "frei",
+      "minStufe": 4,
+      "abWoche": 7,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Erst Technik, dann Intensität, dann Kontakt"
+      },
+      "offen": [],
+      "suchbegriff": "Basketball Training Wiedereinstieg nach Verletzung",
+      "suchbegriff_en": "return to basketball practice",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 7",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_1gegen1",
+      "name": "1-gegen-1",
+      "kategorie": "basketball",
+      "einheitTyp": "sport",
+      "typ": "frei",
+      "minStufe": 4,
+      "abWoche": 7,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": ""
+      },
+      "offen": [],
+      "suchbegriff": "Basketball 1 gegen 1 Übung",
+      "suchbegriff_en": "basketball one on one drill",
+      "status": "gesichert",
+      "quelle": "Leitfaden: Phasenmodell Sehne, Stufe 4; 8-Wochen-Plan, Woche 7",
+      "gelbKuerzen": true
+    },
+    {
+      "id": "bb_teamtraining_kontakt",
+      "name": "Volles Training mit Kontakt",
+      "kategorie": "basketball",
+      "einheitTyp": "sport",
+      "typ": "frei",
+      "minStufe": 4,
+      "abWoche": 8,
+      "kniebelastend": true,
+      "mitGewicht": false,
+      "dosierung": {
+        "text": "Spielminuten und Sprungvolumen über 2–3 Wochen steigern, keine plötzlichen Spitzen"
+      },
+      "offen": [],
+      "suchbegriff": "Return to Play Basketball Knie",
+      "suchbegriff_en": "return to play basketball knee",
+      "status": "gesichert",
+      "quelle": "Leitfaden: 8-Wochen-Plan, Woche 8; Return-to-Play und Erhaltung",
+      "gelbKuerzen": true
     }
   ]
 }

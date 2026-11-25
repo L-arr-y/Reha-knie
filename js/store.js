@@ -1,38 +1,51 @@
 // App-Zustand: Inhalte (JSON) + deine lokalen Daten. Änderungen werden sofort in IndexedDB gespeichert.
-import { db } from './db.js';
-import { wirksameDosierung, planUebungen } from './regeln.js';
-import { esc } from './util.js';
+import { db, keyVon } from './db.js';
+import { rehaStatus } from './regeln.js';
+import { isoDatum } from './util.js';
 
 export const S = {
-  daten: null,          // { phasen, uebungen, regeln, warnzeichen }
+  daten: null,          // { stufen, uebungen, plan, regeln, warnzeichen }
   ueb: {},              // Übungen nach id
-  kv: {},               // Einstellungen
+  kv: {},
+  morgenchecks: [],
   einheiten: [],
-  morgen: [],
+  stufenwechsel: [],
+  rtpchecks: [],
   visap: [],
-  ereignisse: [],
   online: navigator.onLine,
   persistiert: null,
   standalone: !!(window.navigator.standalone || window.matchMedia?.('(display-mode: standalone)').matches),
 };
 
 export const KV_STANDARD = {
-  phase: 'stufe1',
-  varianten: {},            // { exzentrik: true, hsr: false }
-  wochenplan: null,         // wird aus regeln.json gesetzt
-  eigeneWerte: {},          // { uebungId: { feld: wert } }
-  exzStufe: 0,
-  zusatzlastFrei: false,
-  zusatzlastKg: null,
-  kriterien: {},            // abgehakte Kriterien
+  startStufe: 1,
+  startDatum: null,         // wird beim ersten Start gesetzt
+  planStart: null,          // null = Start aus plan.json
+  koerpergewicht: null,
+  bein: 'rechts',           // betroffenes Bein
+  bestaetigt: {},           // bestätigte Stufenkriterien
+  eigeneWerte: {},          // { uebungId: { feld: wert } } für OFFEN-Felder
+  regelWerte: {},           // eigene Grenzwerte, z. B. { 'ampel.gruenMax': 2 }
+  isoVariante: null,        // gewählte Isometrie-Übung
   ersterStartGesehen: false,
   homeHinweisAus: false,
-  pauseQuittiertISO: null,
-  progressionGesehen: null,
-  phasenHinweisGesehen: null,
-  morgenUebersprungen: null,
   letzterExportISO: null,
+  backupSpaeter: null,
+  visapSpaeter: null,
 };
+
+/** Grenzwerte, die in den Einstellungen geändert werden können (Pfad in regeln.json). */
+export const REGEL_FELDER = [
+  { pfad: 'ampel.gruenMax', label: 'Grün bis (Morgentest)', einheit: '/10' },
+  { pfad: 'ampel.gelbMax', label: 'Gelb bis (Morgentest)', einheit: '/10' },
+  { pfad: 'stufenwechsel.minTageProStufe', label: 'Mindesttage pro Stufe', einheit: 'Tage' },
+  { pfad: 'stufenwechsel.minGruenTage', label: 'Grüne Tage für Aufstieg', einheit: 'Tage' },
+  { pfad: 'gelb.reduktionProzent', label: 'Gelb: Sätze kürzen um', einheit: '%' },
+  { pfad: 'rot.sperreTage', label: 'Rot: Tage nur Iso + Oberkörper', einheit: 'Tage' },
+  { pfad: 'rtp.lsiZiel', label: 'Seitenvergleich-Ziel (LSI)', einheit: '%' },
+];
+
+const holen = (o, pfad) => pfad.split('.').reduce((x, k) => x?.[k], o);
 
 async function json(pfad) {
   const res = await fetch(pfad, { cache: 'no-cache' });
@@ -41,16 +54,14 @@ async function json(pfad) {
 }
 
 export async function laden() {
-  const [phasen, uebungen, regeln, warnzeichen] = await Promise.all([
-    json('data/phasen.json'), json('data/uebungen.json'), json('data/regeln.json'), json('data/warnzeichen.json'),
-  ]);
-  S.daten = { phasen: phasen.phasen, uebungen: uebungen.uebungen, regeln, warnzeichen };
+  const [stufen, uebungen, plan, regeln, warnzeichen] = await Promise.all(
+    ['stufen', 'uebungen', 'plan', 'regeln', 'warnzeichen'].map((f) => json(`data/${f}.json`)),
+  );
+  S.daten = { stufen: stufen.stufen, uebungen: uebungen.uebungen, plan, regeln, warnzeichen };
   S.ueb = Object.fromEntries(uebungen.uebungen.map((u) => [u.id, u]));
-  const kv = await db.kvAll();
-  S.kv = { ...KV_STANDARD, wochenplan: regeln.wochenstruktur.standard_trainingstage, ...kv };
-  [S.einheiten, S.morgen, S.visap, S.ereignisse] = await Promise.all([
-    db.getAll('einheiten'), db.getAll('morgen'), db.getAll('visap'), db.getAll('ereignisse'),
-  ]);
+  S.kv = { ...KV_STANDARD, ...(await db.kvAll()) };
+  if (!S.kv.startDatum) await setKV('startDatum', isoDatum());
+  for (const st of ['morgenchecks', 'einheiten', 'stufenwechsel', 'rtpchecks', 'visap']) S[st] = await db.getAll(st);
 }
 
 export async function setKV(key, value) {
@@ -58,72 +69,56 @@ export async function setKV(key, value) {
   await db.kvSet(key, value);
 }
 
-function upsert(list, obj, key = 'id') {
-  const i = list.findIndex((x) => x[key] === obj[key]);
-  if (i >= 0) list[i] = obj; else list.push(obj);
-}
-
 export async function speichern(store, obj) {
-  const key = store === 'morgen' ? 'datumISO' : 'id';
-  upsert(S[store], obj, key);
+  const k = keyVon(store);
+  const i = S[store].findIndex((x) => x[k] === obj[k]);
+  if (i >= 0) S[store][i] = obj; else S[store].push(obj);
   await db.put(store, obj);
 }
 
 export async function loeschen(store, keyVal) {
-  const key = store === 'morgen' ? 'datumISO' : 'id';
-  S[store] = S[store].filter((x) => x[key] !== keyVal);
+  const k = keyVon(store);
+  S[store] = S[store].filter((x) => x[k] !== keyVal);
   await db.del(store, keyVal);
 }
 
-export function aktuellePhase() {
-  return S.daten.phasen.find((p) => p.id === S.kv.phase) || S.daten.phasen[0];
+/** regeln.json mit deinen eigenen Grenzwerten aus den Einstellungen. */
+export function R() {
+  const r = structuredClone(S.daten.regeln);
+  for (const [pfad, wert] of Object.entries(S.kv.regelWerte || {})) {
+    if (wert === null || wert === '' || !Number.isFinite(Number(wert))) continue;
+    const teile = pfad.split('.');
+    const ziel = teile.slice(0, -1).reduce((x, k) => x[k], r);
+    ziel[teile.at(-1)] = Number(wert);
+  }
+  return r;
+}
+export const regelStandard = (pfad) => holen(S.daten.regeln, pfad);
+
+export function plan() {
+  return S.kv.planStart ? { ...S.daten.plan, start: S.kv.planStart } : S.daten.plan;
+}
+
+export function status(heute = isoDatum()) {
+  return rehaStatus({
+    checks: S.morgenchecks.map((c) => ({ datum: c.datum, wert: c.sls, zeit: c.erfasstISO })),
+    wechsel: S.stufenwechsel,
+    startStufe: S.kv.startStufe,
+    startDatum: S.kv.startDatum,
+    heute,
+  }, R());
+}
+
+export function stufeObj(nr) {
+  return S.daten.stufen.find((s) => s.nr === nr) || S.daten.stufen[0];
+}
+
+/** Dosierung aus der JSON plus deine eigenen Werte für OFFEN-Felder. */
+export function dosierung(uebungId) {
+  const u = S.ueb[uebungId];
+  return { ...(u?.dosierung || {}), ...(S.kv.eigeneWerte?.[uebungId] || {}) };
 }
 
 export function aktiveEinheit() {
   return S.einheiten.find((e) => !e.abgeschlossen) || null;
-}
-
-/** Werte für eine Übung im Plan (inkl. Exzentrik-Progression und eigener Werte). */
-export function planWerte(uebungId) {
-  const u = S.ueb[uebungId];
-  const d = wirksameDosierung(u, S.kv.eigeneWerte?.[uebungId] || {});
-  const r = S.daten.regeln;
-  const v = (k) => d[k]?.wert ?? null;
-  let saetze = v('saetze');
-  let wdh = v('wiederholungen');
-  let zusatzlastKg = null;
-  if (uebungId === r.progression_exzentrik.uebung) {
-    const st = r.progression_exzentrik.stufen[Math.min(S.kv.exzStufe || 0, r.progression_exzentrik.stufen.length - 1)];
-    saetze = st.saetze;
-    if (!d.wiederholungen?.eigen) wdh = st.wiederholungen;
-    if (S.kv.zusatzlastFrei) zusatzlastKg = S.kv.zusatzlastKg ?? null;
-  }
-  return { u, d, saetze, wdh, halteS: v('haltezeit_s'), pauseS: v('pause_s'), zusatzlastKg };
-}
-
-const bereich = (f) => (f?.wert_max && f.wert_max !== f.wert ? `${f.wert}–${f.wert_max}` : `${f.wert}`);
-
-/** Kurzer Dosierungstext, z. B. "5 × 45 s halten · Pause 60 s". OFFEN wird ausgeschrieben. */
-export function dosisText(uebungId) {
-  const { u, d, saetze, wdh, halteS, pauseS, zusatzlastKg } = planWerte(uebungId);
-  const teile = [];
-  const offen = '<b class="offen-txt">OFFEN</b>';
-  const isExz = uebungId === S.daten.regeln.progression_exzentrik.uebung;
-  const s = isExz ? `${saetze}` : d.saetze?.wert != null ? bereich({ ...d.saetze, wert: saetze }) : null;
-  if (u.typ === 'halten') {
-    teile.push(`${s ?? offen} × ${halteS != null ? `${halteS} s halten` : `Haltezeit ${offen}`}`);
-  } else if (u.typ === 'wiederholungen') {
-    const w = isExz || d.wiederholungen?.eigen ? (wdh != null ? `${wdh}` : null) : d.wiederholungen?.wert != null ? bereich(d.wiederholungen) : null;
-    teile.push(`${s ?? `Sätze ${offen}`} × ${w != null ? `${w} Wdh.` : `Wdh. ${offen}`}`);
-    if (zusatzlastKg != null) teile.push(`+${String(zusatzlastKg).replace('.', ',')} kg`);
-  } else {
-    const h = d.haeufigkeit;
-    teile.push(h && h.status !== 'OFFEN' ? esc(h.text) : `Dosierung ${offen}`);
-  }
-  if (u.typ !== 'frei') teile.push(pauseS != null ? `Pause ${pauseS >= 60 && pauseS % 60 === 0 ? `${pauseS / 60} Min.` : `${pauseS} s`}` : `Pause ${offen}`);
-  return teile.join(' · ');
-}
-
-export function heutigerPlan() {
-  return planUebungen(aktuellePhase(), S.kv.varianten);
 }

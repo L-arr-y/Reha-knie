@@ -1,0 +1,310 @@
+{
+  "_info": "8-Wochen-Idealplan bei durchgehend grüner Ampel. Nur Orientierung: gesteuert wird über Ampel und Stufe. okEinheiten = Oberkörper-Einheiten der Woche im Wechsel (Schulter-Prehab kommt immer als Aufwärmen dazu). Übungen mit minStufe über deiner aktuellen Stufe werden ausgegraut.",
+  "version": 3,
+  "start": "2026-11-23",
+  "zielSpiel": "2027-01-18",
+  "zielText": "Erstes vorsichtiges Spiel mit begrenzter Spielzeit",
+  "hinweis": "Idealverlauf bei durchgehend grüner Ampel. Jede gelbe oder rote Woche verschiebt alles nach hinten – das ist normal, kein Scheitern. Das 8-Wochen-Ziel ist ein Wiedereinstieg, nicht volle Leistungsfähigkeit.",
+  "okProWoche": 2,
+  "wochen": [
+    {
+      "nr": 1,
+      "sollStufe": 1,
+      "sehne": "Stufe 1 täglich; ab Tag 3–4 erste HSR-Einheit 4 × 15 testen",
+      "unterkoerper": "Waden, Hüfte, Hamstrings, Rumpf",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz"
+      ],
+      "oberkoerper": "Grundkraft A/B, 2×",
+      "okEinheiten": [
+        [
+          "ok_a"
+        ],
+        [
+          "ok_b"
+        ]
+      ],
+      "basketball": "Wurftechnik im Stand, Dribbling ohne Sprünge",
+      "bbUebungen": [
+        "bb_wurf_stand",
+        "bb_dribbling"
+      ],
+      "hsrAnzahl": 2
+    },
+    {
+      "nr": 2,
+      "sollStufe": 2,
+      "sehne": "Stufe 2: HSR 3× (4 × 12–15), Isometrie dazwischen",
+      "hsrZiel": "4 × 12–15",
+      "unterkoerper": "wie Woche 1",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz"
+      ],
+      "oberkoerper": "Grundkraft 2×",
+      "okEinheiten": [
+        [
+          "ok_a"
+        ],
+        [
+          "ok_b"
+        ]
+      ],
+      "basketball": "Freiwürfe, Ballhandling, lockeres Laufen",
+      "bbUebungen": [
+        "bb_freiwuerfe",
+        "bb_ballhandling",
+        "bb_lockeres_laufen"
+      ],
+      "hsrAnzahl": 2
+    },
+    {
+      "nr": 3,
+      "sollStufe": 2,
+      "sehne": "HSR 3× (4 × 10), Bewegungsumfang bis 70–80°",
+      "hsrZiel": "4 × 10, bis 70–80°",
+      "unterkoerper": "Waden, Hüfte, Hamstrings, Rumpf; Split Squat ab jetzt als HSR-Wechselübung",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz"
+      ],
+      "oberkoerper": "Grundkraft + erste Medizinballwürfe im Stand",
+      "okEinheiten": [
+        [
+          "ok_a",
+          "ok_power"
+        ],
+        [
+          "ok_b",
+          "ok_power"
+        ]
+      ],
+      "basketball": "Wurf aus kurzer Distanz, Defense-Stance ohne Tempo",
+      "bbUebungen": [
+        "bb_wurf_kurz",
+        "bb_defense_stance"
+      ],
+      "hsrAnzahl": 3
+    },
+    {
+      "nr": 4,
+      "sollStufe": 2,
+      "sehne": "HSR 3× (4 × 8), bis 90°; Test 150 % Körpergewicht",
+      "hsrZiel": "4 × 8, bis 90°",
+      "unterkoerper": "wie Woche 3",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz"
+      ],
+      "oberkoerper": "Kraft + Power 2×",
+      "okEinheiten": [
+        [
+          "ok_a",
+          "ok_power"
+        ],
+        [
+          "ok_b",
+          "ok_power"
+        ]
+      ],
+      "basketball": "Shooting-Volumen steigern",
+      "bbUebungen": [
+        "bb_shooting_volumen"
+      ],
+      "hsrAnzahl": 3
+    },
+    {
+      "nr": 5,
+      "sollStufe": 3,
+      "sehne": "Stufe 3: Sprünge beidbeinig 3 × 10, 2×/Woche; HSR 2× (4 × 6)",
+      "hsrZiel": "4 × 6",
+      "unterkoerper": "Waden, Hüfte, Hamstrings, Rumpf · Sprints 6 × 20–30 m bei 70 % (an Sprungtagen)",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz",
+        "uk_sprints"
+      ],
+      "oberkoerper": "Power + Kontaktkraft",
+      "okEinheiten": [
+        [
+          "ok_power",
+          "ok_kontakt"
+        ]
+      ],
+      "basketball": "Lay-ups beidbeinig abspringen, leichte Slides",
+      "bbUebungen": [
+        "bb_layups_beidbeinig",
+        "bb_slides"
+      ],
+      "hsrAnzahl": 3,
+      "bbMinuten": {
+        "min": 20,
+        "max": 30,
+        "text": "20–30 min, nur Wurf und Lay-ups",
+        "status": "ergänzend",
+        "quelle": "Ergänzung Reha-Modul (keine Studiendaten)"
+      }
+    },
+    {
+      "nr": 6,
+      "sollStufe": 3,
+      "sehne": "Sprünge einbeinig, mehr Volumen; Richtungswechsel",
+      "unterkoerper": "wie Woche 5 · Sprints 8 × bei 80–90 %",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz",
+        "uk_sprints"
+      ],
+      "oberkoerper": "Power + Kontaktkraft",
+      "okEinheiten": [
+        [
+          "ok_power",
+          "ok_kontakt"
+        ]
+      ],
+      "basketball": "Lay-ups, Jumpshots, Close-outs",
+      "bbUebungen": [
+        "bb_layups_jumpshots",
+        "bb_close_outs"
+      ],
+      "hsrAnzahl": 3,
+      "bbMinuten": {
+        "min": 30,
+        "max": 45,
+        "text": "30–45 min",
+        "status": "ergänzend",
+        "quelle": "Ergänzung Reha-Modul (keine Studiendaten)"
+      }
+    },
+    {
+      "nr": 7,
+      "sollStufe": 4,
+      "sehne": "Stufe 4: Sportspezifik alle 2–3 Tage, HSR 2×",
+      "unterkoerper": "wie Woche 6 · Sprints mit Cuts",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz",
+        "uk_sprints"
+      ],
+      "oberkoerper": "Erhaltung 2×",
+      "okEinheiten": [
+        [
+          "ok_erhaltung"
+        ]
+      ],
+      "basketball": "Teamtraining ohne Kontakt, dann 1-gegen-1",
+      "bbUebungen": [
+        "bb_teamtraining_ohne",
+        "bb_1gegen1",
+        "bb_rebound"
+      ],
+      "hsrAnzahl": 3,
+      "bbMinuten": {
+        "min": 45,
+        "max": 60,
+        "text": "45–60 min Teamtraining ohne Kontakt",
+        "status": "ergänzend",
+        "quelle": "Ergänzung Reha-Modul (keine Studiendaten)"
+      }
+    },
+    {
+      "nr": 8,
+      "sollStufe": 4,
+      "sehne": "Stufe 4 voll, Return-to-Play-Check",
+      "unterkoerper": "wie Woche 7",
+      "ukUebungen": [
+        "uk_waden_stehend",
+        "uk_waden_sitzend",
+        "uk_hip_thrust",
+        "uk_copenhagen",
+        "uk_band_abduktion",
+        "uk_rdl",
+        "uk_nordic",
+        "uk_dead_bug",
+        "uk_pallof",
+        "uk_seitstuetz",
+        "uk_sprints"
+      ],
+      "oberkoerper": "Erhaltung 2×",
+      "okEinheiten": [
+        [
+          "ok_erhaltung"
+        ]
+      ],
+      "basketball": "Volles Training mit Kontakt; ab ca. 18.01. erstes Spiel mit begrenzter Spielzeit",
+      "bbUebungen": [
+        "bb_teamtraining_kontakt",
+        "bb_1gegen1",
+        "bb_rebound"
+      ],
+      "hsrAnzahl": 3,
+      "bbMinuten": {
+        "min": null,
+        "max": null,
+        "text": "volles Training",
+        "status": "ergänzend",
+        "quelle": "Ergänzung Reha-Modul (keine Studiendaten)"
+      }
+    }
+  ],
+  "status": "gesichert",
+  "quelle": "Leitfaden: 8-Wochen-Plan bis zur Spielrückkehr; Oberkörper basketballspezifisch",
+  "hinweisSprungtage": "Sprints und Basketball liegen ab Stufe 3 auf den Sprung-/Sporttagen, damit die Tage dazwischen echte Erholungstage für die Sehne bleiben."
+}

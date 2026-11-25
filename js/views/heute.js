@@ -1,534 +1,542 @@
-// Tab "Heute": Hinweise, Morgenwert, Tagesplan und der Ablauf einer Trainingseinheit.
-import { S, setKV, speichern, loeschen, aktuellePhase, aktiveEinheit, planWerte, dosisText, heutigerPlan } from '../store.js';
+// Tab "Heute": Morgentest → Ampel → Vorschlag → Training (Satz-Logger mit kg und Timer).
+import { S, R, setKV, speichern, loeschen, status, stufeObj, plan, dosierung, aktiveEinheit } from '../store.js';
 import {
-  ampel, einheitRot, maxSchmerzWaehrend, reduktionAktiv, faelligePruefung, pauseStatus,
-  phasenwechselStatus, exzProgression, plyoEinheitenWoche, plyoErlaubt, istTrainingstag, letzteAbgeschlossene,
+  planWoche, tagesvorschlag, uebungenFuer, gesperrtDurchStufe, saetzeHeute, hsrNaechste, letzterEintrag, letzteKg, GRUND_TEXT, bbBelastung,
 } from '../regeln.js';
 import { segmentStatus, audioFreischalten, signal, bildschirmWach } from '../timer.js';
-import { esc, isoDatum, deDatum, addTage, wochentag, uid, mmss, parseZahl } from '../util.js';
-import { icon, statusChip, ampelChip, schmerzSkala, ytButton, banner, toast } from '../ui.js';
+import { esc, isoDatum, deDatum, wochentag, uid, mmss, parseZahl, zahlDE } from '../util.js';
+import { icon, statusChip, ampelChip, schmerzAmpel, schmerzSkala, ytButton, banner, toast, kopf, openSheet, closeSheet } from '../ui.js';
 import { oeffneUebung } from './uebungen.js';
-import { oeffneStufen } from './einstellungen.js';
-import { visapFaellig, oeffneVisap } from './verlauf.js';
+import { visapFaellig } from './verlauf.js';
 import { faellig } from '../regeln.js';
 
-const R = () => S.daten.regeln;
 const heute = () => isoDatum();
-const draft = { morgen: { schmerz: null, alltag: null, notiz: '' } };
+const ui = { morgen: { sls: null, steif: null, notiz: '', steifOffen: false }, bearbeiten: false, auswahl: { datum: null, sel: {} }, satzEdit: null };
 
-// ---------------------------------------------------------------- Ansicht
+const TYP_TITEL = { iso: 'Isometrie', hsr: 'Heavy Slow Resistance (HSR)', sprung: 'Sprung-/Energiespeicher-Übungen', sport: 'Basketballspezifisch' };
+const TEIL_TITEL = { sehne: 'Sehne', hsrtest: 'HSR-Test', uk: 'Unterkörper', ok: 'Oberkörper', bb: 'Basketball' };
+const kgText = (kg) => (kg === null || kg === undefined || kg === '' ? '' : `${zahlDE(kg)} kg`);
+
+// ======================================================================== Ansicht
 export function render() {
   const e = aktiveEinheit();
-  return e ? renderEinheit(e) : renderUebersicht();
+  return e ? renderTraining(e) : renderHeute();
 }
 
-function renderUebersicht() {
-  const r = R();
-  const phase = aktuellePhase();
-  const h = heute();
-  let html = `<h1 class="large-title">Heute</h1>
-    <p class="subtitle">${esc(wochentag(h))}, ${deDatum(h)} · Stufe ${phase.nr} – ${esc(phase.name)}</p>`;
-
-  html += hinweise();
-  html += morgenKarte();
-
-  const plan = heutigerPlan();
-  const trainingstag = istTrainingstag(S.kv.wochenplan, h);
-  if (!trainingstag) {
-    html += banner('info', 'i', 'Laut deinem Wochenplan ist heute Ruhetag.', 'Du kannst trotzdem eine Einheit starten.');
-  }
-
-  html += `<div class="section"><div class="section-header">Dein Plan · ${esc(phase.frequenz.text)} ${statusChip(phase.frequenz.status)}</div><div class="list">`;
-  for (const id of plan.haupt) html += planZeile(id);
-  if (!plan.haupt.length) html += `<div class="cell-block muted">Für diese Stufe sind keine Übungen hinterlegt.</div>`;
-  html += `</div></div>`;
-  if (plan.begleitend.length) {
-    html += `<div class="section"><div class="section-header">Begleitend</div><div class="list">`;
-    for (const id of plan.begleitend) html += planZeile(id);
-    html += `</div></div>`;
-  }
-
-  html += `<button class="btn filled lg" data-action="einheit-start">${icon.play}Einheit starten</button>`;
-
-  const heuteFertig = S.einheiten.filter((x) => x.abgeschlossen && x.datumISO === h).sort((a, b) => (a.startISO < b.startISO ? -1 : 1));
-  html += `<div class="section mt16"><div class="section-header">Heute erledigt</div><div class="list">`;
-  if (!heuteFertig.length) html += `<div class="cell-block muted">Noch keine Einheit.</div>`;
-  heuteFertig.forEach((x, i) => { html += einheitZeile(x, i + 1); });
-  html += `</div></div>`;
-  return html;
-}
-
-function planZeile(id) {
-  const u = S.ueb[id];
-  if (!u) return '';
-  return `<button class="cell" data-action="uebung-info" data-id="${esc(id)}">
-    <div class="grow"><div class="headline">${esc(u.name)} ${statusChip(u.status)}</div><div class="footnote">${dosisText(id)}</div></div>${icon.chev}
-  </button>`;
-}
-
-function einheitZeile(x, nr) {
-  const max = maxSchmerzWaehrend(x);
-  const zeit = new Date(x.startISO).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  return `<div class="cell-block">
-    <div class="headline">Einheit ${nr} · ${zeit} Uhr</div>
-    <div class="footnote">Vorher ${x.schmerzVor ?? '–'}/10 · Nachher ${x.schmerzNach ?? '–'}/10${x.beschwerdefrei === true ? ' · beschwerdefrei' : ''}</div>
-    ${max !== null ? `<div class="mt8">Stärkster Schmerz während: ${ampelChip(max, R())}</div>` : ''}
-  </div>`;
-}
-
-// ---------------------------------------------------------------- Hinweise / Regeln
-function hinweise() {
+function renderHeute() {
   const r = R();
   const h = heute();
-  let html = '';
+  const st = status(h);
+  const so = stufeObj(st.stufe);
+  const pl = plan();
+  const v = tagesvorschlag({ status: st, einheiten: S.einheiten, heute: h, stufen: S.daten.stufen, plan: pl, ueb: S.ueb, letzterOkBlock: letzterOkBlock() }, r);
+  const pwInfo = planWoche(pl, h);
+  const pwText = pwInfo ? (pwInfo.vorPlan ? 'Plan startet bald' : pwInfo.nachPlan ? 'nach dem 8-Wochen-Plan' : `Woche ${pwInfo.nr} von 8`) : '';
+  let html = kopf('Heute', `${esc(wochentag(h))}, ${deDatum(h)} · Stufe ${st.stufe} – ${esc(so.name)}${pwText ? ` · ${pwText}` : ''}`);
 
-  const pause = pauseStatus({ ereignisse: S.ereignisse, morgen: S.morgen, quittiertISO: S.kv.pauseQuittiertISO });
-  if (pause.aktiv) {
-    const text = pause.grund === 'alltagsschmerz' ? r.alltagsschmerz.ja_text : r.reduktion.keine_besserung_text;
-    html += banner('rot', '✕', 'Programm pausieren – Arzt kontaktieren', esc(text) + ' ' + esc(r.hinweise.keine_diagnose),
-      `<button class="btn small" data-action="tab" data-tab="warnzeichen">Warnzeichen ansehen</button>
-       <button class="btn small" data-action="pause-quittieren">Mit Arzt besprochen</button>`);
+  if (st.physioHinweis) {
+    html += banner('rot', '✕', 'Physio/Arzt kontaktieren', esc(r.rot.physioText) + ' ' + esc(r.hinweise.keine_diagnose),
+      `<button class="btn small" data-action="warn-open">Warnzeichen ansehen</button>`);
   }
 
-  const pruef = faelligePruefung(S.ereignisse, h, r);
-  if (pruef) {
-    html += banner('gelb', '?', r.reduktion.pruefung_frage, `Schmerz ${esc(pruef.wert)}/10 am ${deDatum(pruef.datumISO)}.`,
-      `<button class="btn small" data-action="pruefung" data-antwort="besser">Ja, besser</button>
-       <button class="btn small danger" data-action="pruefung" data-antwort="nicht_besser">Nein</button>`);
-  }
-
-  const red = reduktionAktiv(S.einheiten, r);
-  if (red) {
-    html += banner('gelb', '!', `Letzte Einheit: Schmerz ${red.wert}/10 – heute Belastung reduzieren`, esc(r.reduktion.optionen_text));
-  }
-
-  // Progression Exzentrik
-  const letzteExz = letzteAbgeschlossene(S.einheiten, (e) => e.uebungen.some((u) => u.uebungId === r.progression_exzentrik.uebung));
-  const prog = exzProgression(letzteExz, S.kv.exzStufe, r);
-  if (prog && S.kv.progressionGesehen !== letzteExz.id) {
-    if (prog.typ === 'steigern') {
-      html += banner('gruen', '↑', `Exzentrik: ${prog.von.saetze}×${prog.von.wiederholungen} beschwerdefrei`,
-        esc(r.progression_exzentrik.steigerung_text),
-        `<button class="btn small green filled" data-action="progression" data-wert="steigern">Auf ${prog.nach.saetze}×${prog.nach.wiederholungen} erhöhen</button>
-         <button class="btn small" data-action="progression" data-wert="nein">Noch nicht</button>`);
-    } else if (!S.kv.zusatzlastFrei) {
-      html += banner('gruen', '↑', 'Zusatzlast möglich', esc(r.zusatzlast.text),
-        `<button class="btn small green filled" data-action="progression" data-wert="zusatzlast">Zusatzlast-Feld einschalten</button>
-         <button class="btn small" data-action="progression" data-wert="nein">Noch nicht</button>`);
-    }
-  }
-
-  // Phasenwechsel-Hinweis (nur wenn das automatische Schmerzkriterium erfüllt ist)
-  const st = phasenwechselStatus(S.kv.phase, S.einheiten, S.kv.kriterien, S.daten.phasen, r);
-  const letztePh = letzteAbgeschlossene(S.einheiten, (e) => e.phase === S.kv.phase);
-  if (st && st.schmerzOk === true && letztePh && S.kv.phasenHinweisGesehen !== letztePh.id) {
-    html += banner('gruen', '✓', `Schmerzkriterium erreicht: ${st.letzterWert}/10 (höchstens ${st.regel.schmerz_max})`,
-      esc(st.regel.text),
-      `<button class="btn small" data-action="stufen-oeffnen">Checkliste ansehen</button>
-       <button class="btn small" data-action="phasenhinweis-aus">Ausblenden</button>`);
+  if (!st.morgencheckHeute || ui.bearbeiten) {
+    html += morgentestKarte(r);
+    html += `<div class="footnote center mb8">Ohne Morgentest gibt es keinen Trainingsvorschlag (Regel 1 im Leitfaden).</div>`;
+  } else {
+    html += ampelKarte(st, r);
+    html += vorschlagKarten(v, st, r);
   }
 
   // Erinnerungen: Sicherung (CSV) und VISA-P
-  const hatDaten = S.einheiten.some((e) => e.abgeschlossen);
+  const hatDaten = S.morgenchecks.length > 0;
   if (hatDaten && faellig(S.kv.letzterExportISO, h, r.backup.erinnerung_tage) && S.kv.backupSpaeter !== h) {
-    html += banner('info', '⇪', r.backup.text,
-      S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}.` : 'Du hast noch nie exportiert.',
-      `<button class="btn small" data-action="export">Jetzt exportieren</button>
-       <button class="btn small" data-action="backup-spaeter">Später</button>`);
+    html += banner('info', '⇪', r.backup.text, S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}.` : 'Du hast noch nie exportiert.',
+      `<button class="btn small" data-action="export">Jetzt exportieren</button><button class="btn small" data-action="backup-spaeter">Später</button>`);
   }
-  if (visapFaellig() && S.kv.visapSpaeter !== h) {
-    const letzter = [...S.visap].sort((a, b) => (a.datumISO < b.datumISO ? -1 : 1)).pop();
+  if (hatDaten && visapFaellig() && S.kv.visapSpaeter !== h) {
+    const letzter = [...S.visap].sort((a, b) => (a.datum < b.datum ? -1 : 1)).pop();
     html += banner('info', 'V', letzter ? 'Zeit für einen neuen VISA-P-Wert' : 'VISA-P-Ausgangswert eintragen',
-      letzter ? `Letzter Wert ${letzter.score} am ${deDatum(letzter.datumISO)}.` : `Erinnerung alle ${r.visap.erinnerung_tage} Tage.`,
-      `<button class="btn small" data-action="visap-neu-heute">Eintragen</button>
-       <button class="btn small" data-action="visap-spaeter">Später</button>`);
+      letzter ? `Letzter Wert ${zahlDE(letzter.score)} am ${deDatum(letzter.datum)}.` : `Erinnerung alle ${r.visap.erinnerung_tage} Tage.`,
+      `<button class="btn small" data-action="visap-neu">Eintragen</button><button class="btn small" data-action="visap-spaeter">Später</button>`);
   }
 
   if (!S.standalone && !S.kv.homeHinweisAus) {
-    html += banner('info', 'i', 'Tipp: Zum Home-Bildschirm hinzufügen',
-      'Dann läuft die App im Vollbild und Safari löscht deine Daten nicht so leicht.',
-      `<button class="btn small" data-action="home-anleitung">So geht's</button>
-       <button class="btn small" data-action="home-aus">Ausblenden</button>`);
+    html += banner('info', 'i', 'Tipp: Zum Home-Bildschirm hinzufügen', 'Dann läuft die App im Vollbild und Safari löscht deine Daten nicht so leicht.',
+      `<button class="btn small" data-action="home-anleitung">So geht's</button><button class="btn small" data-action="home-aus">Ausblenden</button>`);
+  }
+
+  const fertig = S.einheiten.filter((x) => x.abgeschlossen && x.datum === h);
+  if (fertig.length) {
+    html += `<div class="section mt16"><div class="section-header">Heute erledigt</div><div class="list">`;
+    for (const x of fertig) {
+      const n = x.uebungen.filter((u) => u.erledigt || u.saetze.some((s) => s.erledigt)).length;
+      html += `<div class="cell-block"><div class="headline">${x.teile.map((t) => esc(TEIL_TITEL[t] || t)).join(' + ')}</div>
+        <div class="footnote">${n} Übungen · Schmerz danach ${x.schmerzDanach ?? '–'}/10${x.notiz ? ` · „${esc(x.notiz)}“` : ''}</div></div>`;
+    }
+    html += `</div></div>`;
   }
   return html;
 }
 
-// ---------------------------------------------------------------- Morgenwert
-function morgenKarte() {
-  const h = heute();
-  const gestern = addTage(h, -1);
-  const hatteGestern = S.einheiten.some((e) => e.abgeschlossen && e.datumISO === gestern);
-  const eintrag = S.morgen.find((m) => m.datumISO === h);
-  if (!hatteGestern || eintrag || S.kv.morgenUebersprungen === h) return '';
-  const r = R();
-  const d = draft.morgen;
+function morgentestKarte(r) {
+  const m = r.morgentest;
+  const d = ui.morgen;
   return `<div class="card">
-    <div class="title3">Guten Morgen – wie geht's dem Knie?</div>
-    <div class="footnote mt8">Schmerz heute Morgen (nach der Einheit von gestern). ${esc(r.folgetag_schmerz.text)}</div>
-    ${schmerzSkala('morgen-schmerz', d.schmerz, r, { mitAmpel: false })}
-    <div class="label-small mt16">${esc(r.alltagsschmerz.frage)}</div>
-    <div class="seg mt8">
-      <button data-action="morgen-alltag" data-wert="nein" aria-pressed="${d.alltag === false}">Nein</button>
-      <button data-action="morgen-alltag" data-wert="ja" aria-pressed="${d.alltag === true}">Ja</button>
-    </div>
-    <div class="label-small mt16">Notiz (optional)</div>
-    <textarea class="mt8" data-input="morgen-notiz" placeholder="z. B. Treppe ok, leichtes Ziehen">${esc(d.notiz)}</textarea>
+    <div class="title3">${esc(m.titel)}</div>
+    <div class="footnote mt8" style="color:var(--label)">${esc(m.anleitung)}</div>
+    ${schmerzSkala('morgen-sls', d.sls, r, { mitAmpel: false })}
+    ${d.steifOffen ? `<div class="label-small mt16">Morgensteifigkeit (optional)</div>${schmerzSkala('morgen-steif', d.steif, r, { mitAmpel: false })}`
+      : `<button class="link-btn" data-action="morgen-steif-auf">+ Morgensteifigkeit eintragen (optional)</button>`}
+    <div class="label-small mt12">Notiz (optional)</div>
+    <textarea class="mt8" data-input="morgen-notiz" placeholder="z. B. Schrägbrett 25°, leichtes Ziehen">${esc(d.notiz)}</textarea>
     <div class="row mt12">
-      <button class="btn" data-action="morgen-skip">Heute nicht</button>
-      <button class="btn filled" data-action="morgen-speichern" ${d.schmerz === null || d.alltag === null ? 'disabled' : ''}>Speichern</button>
+      ${ui.bearbeiten ? `<button class="btn" data-action="morgen-abbrechen">Abbrechen</button>` : ''}
+      <button class="btn filled" data-action="morgen-speichern" ${d.sls === null ? 'disabled' : ''}>Speichern</button>
     </div>
   </div>`;
 }
 
-// ---------------------------------------------------------------- Einheit
-function schritte(e) {
-  const order = ['vor', 'training', 'nach'];
-  const i = order.indexOf(e.schritt);
-  return `<div class="steps" aria-label="Schritt ${i + 1} von 3">${order.map((_, k) => `<span class="${k <= i ? 'on' : ''}"></span>`).join('')}</div>`;
+function ampelKarte(st, r) {
+  const a = st.ampelHeute;
+  const s = r.ampel.stufen[a];
+  const check = S.morgenchecks.find((c) => c.datum === heute());
+  const wechselHeute = st.stufenVerlauf.at(-1);
+  const zurueck = wechselHeute && wechselHeute.datum === heute() && wechselHeute.grund === 'rot';
+  return `<div class="card">
+    <div class="ampel-gross"><div class="kreis ${a}" aria-hidden="true">${esc(s.symbol)}</div>
+      <div><div class="title2">Ampel ${esc(s.titel)}</div><div class="footnote">${esc(GRUND_TEXT[st.grundHeute] || '')}</div></div></div>
+    <div class="mt12">${esc(s.konsequenz)}</div>
+    ${zurueck ? `<div class="hinweis-box"><b>Stufe zurückgesetzt:</b> von Stufe ${wechselHeute.von} auf Stufe ${wechselHeute.nach}.</div>` : ''}
+    ${st.sperreAktiv ? `<div class="hinweis-box">${esc(r.rot.sperreText)} (bis ${deDatum(st.sperreBis)})</div>` : ''}
+    <div class="row mt12" style="align-items:center"><div class="footnote">Morgentest: <b>${check.sls}/10</b>${check.steifigkeit != null ? ` · Steifigkeit ${check.steifigkeit}/10` : ''}</div>
+      <button class="link-btn" style="flex:none" data-action="morgen-aendern">Ändern</button></div>
+  </div>`;
 }
 
-function renderEinheit(e) {
-  const r = R();
-  const titel = { vor: 'Vor dem Training', training: 'Training', nach: 'Nach dem Training' }[e.schritt];
-  let html = `<h1 class="large-title">${titel}</h1><p class="subtitle">Stufe ${aktuellePhase().nr} · gestartet ${new Date(e.startISO).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr</p>${schritte(e)}`;
-
-  if (e.schritt === 'vor') {
-    const red = reduktionAktiv(S.einheiten, r);
-    if (red) html += banner('gelb', '!', `Heute Belastung reduzieren (letzte Einheit ${red.wert}/10)`, esc(r.reduktion.optionen_text));
-    html += `<div class="card"><div class="title3">Schmerz jetzt</div><div class="footnote mt8">Vor dem Training, 0–10.</div>
-      ${schmerzSkala('vor-schmerz', e.schmerzVor, r, { mitAmpel: false })}</div>`;
-    const hatPlyo = e.uebungen.some((u) => S.ueb[u.uebungId]?.plyometrie);
-    if (hatPlyo) {
-      html += `<div class="card"><div class="title3">${esc(r.muskelkater.frage)}</div>
-        <div class="seg mt12">
-          <button data-action="muskelkater" data-wert="nein" aria-pressed="${e.muskelkater === false}">Nein</button>
-          <button data-action="muskelkater" data-wert="ja" aria-pressed="${e.muskelkater === true}">Ja</button>
-        </div>
-        ${e.muskelkater ? `<div class="mt12">${banner('gelb', '!', r.muskelkater.ja_text, '')}</div>` : ''}</div>`;
-    }
-    const ok = e.schmerzVor !== null && (!hatPlyo || e.muskelkater !== null);
-    html += `<button class="btn filled lg" data-action="schritt" data-wert="training" ${ok ? '' : 'disabled'}>Weiter zum Training</button>`;
-  } else if (e.schritt === 'training') {
-    e.uebungen.forEach((u, i) => { html += uebungKarte(e, u, i); });
-    html += `<button class="btn filled lg" data-action="schritt" data-wert="nach">Training beenden</button>`;
-  } else {
-    const max = maxSchmerzWaehrend(e);
-    if (max !== null) html += `<div class="card"><div class="headline">Stärkster Schmerz während der Übungen</div><div class="mt8">${ampelChip(max, r, true)}</div></div>`;
-    html += `<div class="card"><div class="title3">Schmerz jetzt</div><div class="footnote mt8">Direkt nach dem Training. ${esc(r.nach_training.text)}</div>
-      ${schmerzSkala('nach-schmerz', e.schmerzNach, r, { mitAmpel: false })}</div>`;
-    html += `<div class="card"><div class="title3">War die Einheit beschwerdefrei?</div>
-      <div class="footnote mt8">Grundlage für die Steigerung (z. B. 1×15 → 2×15). Ehrlich bleiben ;-)</div>
-      <div class="seg mt12">
-        <button data-action="beschwerdefrei" data-wert="nein" aria-pressed="${e.beschwerdefrei === false}">Nein</button>
-        <button data-action="beschwerdefrei" data-wert="ja" aria-pressed="${e.beschwerdefrei === true}">Ja</button>
-      </div></div>`;
-    html += `<div class="card"><div class="title3">Notiz (optional)</div><textarea class="mt12" data-input="einheit-notiz" placeholder="z. B. Brett 25°, rechtes Bein">${esc(e.notiz || '')}</textarea></div>`;
-    const ok = e.schmerzNach !== null && e.beschwerdefrei !== null;
-    html += `<div class="row"><button class="btn" data-action="schritt" data-wert="training">Zurück</button>
-      <button class="btn filled" data-action="einheit-speichern" ${ok ? '' : 'disabled'}>Einheit speichern</button></div>`;
+// ---------------------------------------------------------------- Vorschlag
+function teileFuer(v, st) {
+  const teile = [];
+  const iso = S.ueb[S.kv.isoVariante] || S.ueb.iso_beinpresse;
+  const hsrOpt = { stufe: st.stufe, planWocheNr: v.planWoche.nr, hsrAnzahl: v.hsrAnzahl, hsrStandard: R().hsr.standard, tausch: S.kv.hsrTausch || {} };
+  if (v.sehne.typ) {
+    const ue = v.sehne.typ === 'iso' ? [iso] : uebungenFuer(v.sehne.typ, S.ueb, hsrOpt);
+    const grund = v.sehne.grund === 'sperre' ? 'Nach Rot: nur Isometrie' : v.sehne.grund === 'faellig' ? 'Laut Rhythmus heute dran' : 'Isometrie füllt die freien Tage';
+    teile.push({ key: 'sehne', titel: `Sehne: ${TYP_TITEL[v.sehne.typ]}`, info: grund, uebungen: ue, standard: true });
   }
-  html += `<div class="center mt16"><button class="link-btn" style="color:var(--red)" data-action="einheit-verwerfen">Einheit verwerfen</button></div>`;
+  if (v.hsrTest) teile.push({ key: 'hsrtest', titel: `HSR-Test ${R().hsr.saetze} × 15 (optional)`, info: stufeObj(st.stufe).hsrTest.text, uebungen: uebungenFuer('hsr', S.ueb, { ...hsrOpt, stufe: 1 }), standard: false });
+  if (v.unterkoerper.length) {
+    const bl = Object.entries(v.ukBloecke).map(([b, x]) => `${BLOCK_NAME[b] || b} ${x.anzahl}/${x.min === x.max ? x.min : `${x.min}–${x.max}`}${x.heute ? ' ✓' : ''}`).join(' · ');
+    // Vorausgewählt an Isometrie-Tagen (Erholungstage der Sehne), damit HSR-/Sprungtage nicht überladen werden.
+    const isoTag = v.sehne.typ === 'iso' || v.sehne.erledigt === 'iso';
+    teile.push({ key: 'uk', titel: 'Unterkörper', info: `Diese Woche: ${bl}${isoTag ? '' : ' · am besten an Isometrie-Tagen'}`, uebungen: v.unterkoerper.map((id) => S.ueb[id]), standard: v.ukFaellig && isoTag });
+  }
+  const okUe = uebungenFuer('ok', S.ueb, { planWocheNr: v.planWoche.nr, okBloecke: v.oberkoerper.bloecke });
+  if (okUe.length) {
+    const info = v.oberkoerper.heuteGemacht ? 'Heute schon gemacht' : v.oberkoerper.faellig ? `${v.planWoche.woche.oberkoerper} · heute dran` : `Nächste Oberkörper-Einheit eher in ${R().oberkoerper.alleTage} Tagen nach der letzten`;
+    teile.push({ key: 'ok', titel: `Oberkörper: ${v.oberkoerper.bloecke.map(blockName).join(' + ')}`, info, uebungen: okUe, standard: v.oberkoerper.faellig && !v.oberkoerper.heuteGemacht, okBlock: v.oberkoerper.bloecke.join('+') });
+  }
+  if (v.basketball.length) {
+    const m = v.bbMinuten;
+    const bl = bbBelastung(S.einheiten, heute(), R());
+    const minText = m ? (m.max ? ` · ${m.min}–${m.max} Min.${m.gelb ? ' (Gelb: −40 %)' : ''}` : ` · ${m.text}`) : '';
+    const lastText = bl.max !== null ? ` · Belastung diese Woche ${bl.diese} von max. ${bl.max}` : '';
+    teile.push({ key: 'bb', titel: 'Basketball', info: `${v.planWoche.woche.basketball}${minText}${lastText}`, uebungen: v.basketball.map((id) => S.ueb[id]), standard: v.stufe >= 3 });
+  }
+  return teile;
+}
+
+const BLOCK_NAME = { waden: 'Waden', huefte: 'Hüfte', hamstrings: 'Hamstrings', rumpf: 'Rumpf' };
+const blockName = (b) => ({ ok_a: 'Grundkraft A', ok_b: 'Grundkraft B', ok_power: 'Power', ok_kontakt: 'Kontaktkraft', ok_erhaltung: 'Erhaltung' }[b] || b);
+
+function auswahl(teile) {
+  if (ui.auswahl.datum !== heute()) ui.auswahl = { datum: heute(), sel: {} };
+  for (const t of teile) if (!(t.key in ui.auswahl.sel)) ui.auswahl.sel[t.key] = t.standard;
+  return ui.auswahl.sel;
+}
+
+function vorschlagKarten(v, st, r) {
+  let html = '';
+  if (v.gelb) html += banner('gelb', '!', 'Gelb: kniebelastende Übungen heute gekürzt', esc(r.gelb.text));
+  if (v.sehne.erledigt) html += banner('gruen', '✓', `Sehne heute erledigt (${TYP_TITEL[v.sehne.erledigt] || v.sehne.erledigt})`, 'Oberkörper oder Basketball kannst du trotzdem noch machen.');
+  if (v.basketballVerschoben) html += banner('info', 'i', 'Basketball und Sprints heute nicht', esc(S.daten.plan.hinweisSprungtage));
+  const bl = bbBelastung(S.einheiten, heute(), r);
+  if (bl.ueber) html += banner('gelb', '!', `Basketball-Belastung diese Woche: ${bl.diese} (Vorwoche ${bl.letzte})`, `Mehr als +${r.basketball.lastSteigerungMaxProzent} % zur Vorwoche. ${esc(r.basketball.text)}`);
+  const teile = teileFuer(v, st);
+  const sel = auswahl(teile);
+  html += `<div class="section"><div class="section-header">Heute dran – antippen zum Auswählen</div>`;
+  for (const t of teile) {
+    const an = !!sel[t.key];
+    const liste = t.uebungen.map((u) => {
+      const gesperrt = gesperrtDurchStufe(u, st.stufe);
+      return `<li class="${gesperrt ? 'gesperrt' : ''}">${esc(u.name)}${gesperrt ? ` <span class="lock">ab Stufe ${u.minStufe}</span>` : ''}${u.status === 'OFFEN' ? ' ' + statusChip('OFFEN') : ''}</li>`;
+    }).join('');
+    html += `<div class="card"><div class="teil">
+      <button class="teil-check" aria-pressed="${an}" aria-label="${esc(t.titel)} auswählen" data-action="teil" data-key="${t.key}">${icon.check}</button>
+      <div class="grow"><div class="headline">${esc(t.titel)}</div><div class="footnote">${esc(t.info || '')}</div>
+        <ul class="plain footnote" style="color:var(--label)">${liste}</ul>
+        ${t.key === 'sehne' && v.sehne.typ === 'iso' ? `<button class="link-btn" data-action="iso-variante">Isometrie-Übung wechseln</button>` : ''}
+      </div></div></div>`;
+  }
+  html += `</div>`;
+  const n = teile.filter((t) => sel[t.key]).length;
+  html += `<button class="btn filled lg" data-action="einheit-start" ${n ? '' : 'disabled'}>${icon.play}${n ? `Einheit starten (${n} ${n === 1 ? 'Teil' : 'Teile'})` : 'Mindestens einen Teil auswählen'}</button>`;
   return html;
 }
 
-function uebungKarte(e, u, i) {
+function letzterOkBlock() {
+  const l = S.einheiten.filter((e) => e.abgeschlossen && e.okBlock).sort((a, b) => (a.startISO < b.startISO ? -1 : 1)).pop();
+  return l?.okBlock || null;
+}
+
+// ---------------------------------------------------------------- Einheit anlegen
+function eintrag(def, teil, ampel, r, planWocheNr = 1, bbMinuten = null) {
+  const d = { ...dosierung(def.id) };
+  const wo = d.nachWoche?.[String(Math.min(planWocheNr, 8))];
+  if (wo) Object.assign(d, wo);
+  const eigene = S.kv.eigeneWerte?.[def.id] || {};
+  let zielSaetze = def.hsr && eigene.saetze == null ? r.hsr.saetze : (d.saetze ?? null);
+  const vorGelb = zielSaetze;
+  if (zielSaetze != null) zielSaetze = saetzeHeute({ ...def, dosierung: { ...d, saetze: zielSaetze } }, ampel, r);
+  let zielWdh = d.wdh ?? null;
+  let kg = def.mitGewicht ? letzteKg(S.einheiten, def.id) : null;
+  let hsrInfo = null;
+  if (def.hsr) {
+    hsrInfo = hsrNaechste(letzterEintrag(S.einheiten, def.id), r, { heuteGelb: ampel === 'gelb' });
+    if (eigene.wdh == null) zielWdh = hsrInfo.zielWdh;
+    if (hsrInfo.kg != null) kg = hsrInfo.kg;
+  }
+  const letzte = def.sprung ? letzterEintrag(S.einheiten, def.id) : null;
+  return {
+    uebungId: def.id, name: def.name, teil, typ: def.typ, mitGewicht: !!def.mitGewicht,
+    kg, zielSaetze, vorGelb: vorGelb !== zielSaetze ? vorGelb : null, zielWdh, zielWdhMax: d.wdh_max ?? null,
+    zielDauer: d.haltezeit_s ?? d.dauer_s ?? null, pauseS: d.pause_s ?? null, pauseMaxS: d.pause_max_s ?? null,
+    intensitaetWoche: wo?.intensitaet || null,
+    slot: def.hsr ? (Object.entries(S.kv.hsrTausch || {}).find(([, v]) => v === def.id)?.[0] || def.id) : null,
+    zielMinuten: def.kategorie === 'basketball' && bbMinuten ? bbMinuten : null,
+    variante: def.sprung ? (letzte?.variante || 'beidbeinig') : null,
+    saetze: Array.from({ length: zielSaetze || 0 }, () => ({ erledigt: false })),
+    schmerzWaehrend: null, rir: null, erledigt: false, hsrInfo,
+  };
+}
+
+function neueEinheit() {
   const r = R();
+  const h = heute();
+  const st = status(h);
+  const v = tagesvorschlag({ status: st, einheiten: S.einheiten, heute: h, stufen: S.daten.stufen, plan: plan(), ueb: S.ueb, letzterOkBlock: letzterOkBlock() }, r);
+  const teile = teileFuer(v, st).filter((t) => ui.auswahl.sel[t.key]);
+  const uebungen = [];
+  for (const t of teile) for (const def of t.uebungen) if (!gesperrtDurchStufe(def, st.stufe)) uebungen.push(eintrag(def, t.key, st.ampelHeute, r, v.planWoche.nr, v.bbMinuten));
+  return {
+    id: uid(), datum: h, startISO: new Date().toISOString(), stufe: st.stufe, ampel: st.ampelHeute,
+    teile: teile.map((t) => t.key), okBlock: teile.find((t) => t.key === 'ok')?.okBlock || null,
+    planWoche: v.planWoche.nr, schritt: 'training', abgeschlossen: false, schmerzDanach: null, notiz: '', timer: null, uebungen,
+  };
+}
+
+// ======================================================================== Training
+function renderTraining(e) {
+  const r = R();
+  const titel = e.schritt === 'nach' ? 'Nach dem Training' : 'Training';
+  let html = kopf(titel, `Stufe ${e.stufe} · ${ampelChip(e.ampel, r)}`);
+  if (e.schritt === 'nach') return html + nachKarte(e, r);
+  if (e.ampel === 'gelb') html += banner('gelb', '!', 'Gelb: kniebelastende Sätze gekürzt', esc(r.gelb.text));
+  let letzterTeil = null;
+  e.uebungen.forEach((u, i) => {
+    if (u.teil !== letzterTeil) { html += `<div class="section-header mt16">${esc(TEIL_TITEL[u.teil] || u.teil)}</div>`; letzterTeil = u.teil; }
+    html += uebungKarte(e, u, i, r);
+  });
+  html += `<button class="btn filled lg mt8" data-action="schritt-nach">Training beenden</button>
+    <div class="center mt16"><button class="link-btn" style="color:var(--red)" data-action="einheit-verwerfen">Einheit verwerfen</button></div>`;
+  return html;
+}
+
+export function pauseText(a, b) {
+  const minuten = a >= 60 && a % 60 === 0 && (!b || (b >= 60 && b % 60 === 0));
+  if (minuten) return b ? `${a / 60}–${b / 60} Min.` : `${a / 60} Min.`;
+  return b ? `${a}–${b} s` : `${a} s`;
+}
+
+function zielText(u, def) {
+  const d = dosierung(u.uebungId);
+  const offen = '<b class="offen-txt">OFFEN</b>';
+  const s = u.zielSaetze != null ? `${u.zielSaetze}` : `Sätze ${offen}`;
+  const teile = [];
+  if (u.typ === 'halten') teile.push(`${s} × ${u.zielDauer ?? offen} s halten`);
+  else if (u.typ === 'dauer') teile.push(`${s} × ${u.zielDauer != null ? `${u.zielDauer}${d.dauer_max_s ? `–${d.dauer_max_s}` : ''} s` : offen}`);
+  else if (u.typ === 'wiederholungen' && d.strecke) teile.push(`${s} × ${esc(d.strecke)}`);
+  else if (u.typ === 'wiederholungen') teile.push(`${s} × ${u.zielWdh != null ? `${u.zielWdh}${u.zielWdhMax ? `–${u.zielWdhMax}` : ''}` : `Wdh. ${offen}`}`);
+  else if (u.zielMinuten) teile.push(u.zielMinuten.max ? `${u.zielMinuten.min}–${u.zielMinuten.max} Min.${u.zielMinuten.gelb ? ' (Gelb: −40 %)' : ''}` : esc(u.zielMinuten.text));
+  else teile.push(esc(d.text || '') || `Dosierung ${offen}`);
+  if (u.intensitaetWoche) teile.push(esc(u.intensitaetWoche));
+  if (d.tempo) teile.push(esc(d.tempo));
+  if (u.hsrInfo?.bewegungsumfang) teile.push(esc(u.hsrInfo.bewegungsumfang));
+  if (d.intensitaet) teile.push(esc(d.intensitaet));
+  if (u.typ !== 'frei') teile.push(u.pauseS != null ? `Pause ${pauseText(u.pauseS, u.pauseMaxS)}` : `Pause ${offen}`);
+  if (d.uebung) teile.unshift(`<b>${esc(d.uebung)}</b>`);
+  return teile.join(' · ');
+}
+
+function uebungKarte(e, u, i, r) {
   const def = S.ueb[u.uebungId];
-  const a = ampel(u.schmerzWaehrend, r);
-  const ausgelassen = u.ausgelassen && u.ausgelassen !== 'manuell_ein';
-  const fertig = u.erledigt || u.abgebrochen || ausgelassen;
-  let html = `<div class="ex ${fertig ? 'done' : ''}">
-    <div class="ex-head">
-      <div class="grow">
-        <div class="ex-name">${esc(def.name)} ${statusChip(def.status)}</div>
-        <div class="ex-dose">${u.dosis}</div>
-      </div>
-      <button class="check" aria-label="Übung erledigt" aria-pressed="${!!u.erledigt}" data-action="ueb-erledigt" data-i="${i}">${icon.check}</button>
-    </div>`;
+  const fertig = u.erledigt;
+  let html = `<div class="ex ${fertig ? 'done' : ''}"><div class="ex-head"><div class="grow">
+      <div class="ex-name">${esc(u.name)} ${statusChip(def.status)}</div><div class="ex-dose">${zielText(u, def)}</div></div>
+      <button class="info-btn" aria-label="Infos zu ${esc(u.name)}" data-action="uebung-info" data-id="${esc(u.uebungId)}">i</button></div>`;
 
-  if (ausgelassen) {
-    html += `<div class="mt12">${banner('gelb', '!', u.ausgelassen === 'muskelkater' ? 'Heute ausgelassen (Muskelkater/Ermüdung)' : `Ausgelassen: ${esc(r.plyometrie.text)}`, esc(u.ausgelassen === 'muskelkater' ? r.muskelkater.ja_text : ''))}</div>
-      <button class="btn small mt8" data-action="ueb-trotzdem" data-i="${i}">Trotzdem einblenden</button></div>`;
-    return html;
+  if (u.hsrInfo?.gelbGesperrt) html += `<div class="hinweis-box">Gelb: gleiche Sätze und Last wie zuletzt, heute keine Steigerung.</div>`;
+  else if (u.hsrInfo?.erfolg) html += `<div class="hinweis-box">↑ Letztes Mal alles geschafft: jetzt <b>${u.zielSaetze} × ${u.zielWdh}</b>${u.hsrInfo.kgMin != null ? `, Last +5–10 % (<b>${zahlDE(u.hsrInfo.kgMin)}–${zahlDE(u.hsrInfo.kgMax)} kg</b>)` : ''}.</div>`;
+  else if (u.hsrInfo?.erfolg === false) html += `<div class="hinweis-box">Gleiche Ziel-Wiederholungen wie letztes Mal – Steigerung erst, wenn alle Sätze bei Schmerz ≤ ${r.hsr.schmerzMax} klappen.</div>`;
+  if (u.slot && !u.saetze.some((x) => x.erledigt)) html += `<button class="link-btn" data-action="hsr-tausch" data-i="${i}">Übung tauschen (${R().hsr.wechsel.map((id) => esc(S.ueb[id].name.replace(' (HSR)', ''))).join(' / ')})</button>`;
+  if (u.vorGelb) html += `<div class="hinweis-box">Gelb: ${u.zielSaetze} statt ${u.vorGelb} Sätze.</div>`;
+
+  if (u.mitGewicht) {
+    html += `<div class="kg-zeile"><label for="kg-${i}">Gewicht</label>
+      <input id="kg-${i}" inputmode="decimal" data-input="kg" data-i="${i}" value="${u.kg != null ? zahlDE(u.kg, 2) : ''}" placeholder="–"><span class="einh">kg</span></div>`;
   }
-  if (u.abgebrochen) {
-    html += `<div class="mt12">${banner('rot', '✕', 'Übung abgebrochen', esc(r.ampel.stufen.rot.text))}</div>
-      <button class="btn small mt8" data-action="ueb-fortsetzen" data-i="${i}">Doch fortsetzen</button></div>`;
-    return html;
+  if (def.sprung) {
+    html += `<div class="seg mt12">${['beidbeinig', 'einbeinig'].map((vv) => `<button data-action="variante" data-i="${i}" data-wert="${vv}" aria-pressed="${u.variante === vv}">${vv}</button>`).join('')}</div>`;
   }
 
-  // Sätze
-  if (def.typ !== 'frei') {
-    const geplant = u.saetzeGeplant;
-    const n = Math.max(geplant || 0, u.saetzeErledigt);
-    html += `<div class="sets" aria-label="${u.saetzeErledigt} von ${geplant ?? 'offen'} Sätzen">`;
-    for (let k = 0; k < n; k++) html += `<span class="set-dot ${k < u.saetzeErledigt ? 'on' : ''}">${k + 1}</span>`;
-    if (!geplant) html += `<span class="footnote" style="align-self:center">Satzzahl OFFEN – zählt frei</span>`;
-    html += `</div>`;
+  if (u.typ === 'frei') {
+    html += `<button class="btn ${fertig ? 'green filled' : ''} block mt12" data-action="frei-erledigt" data-i="${i}">${icon.check}${fertig ? 'Erledigt' : 'Als erledigt markieren'}</button>`;
+  } else {
+    html += `<div class="satz-reihe">`;
+    u.saetze.forEach((s, k) => {
+      const unter = s.erledigt ? (u.typ === 'wiederholungen' ? `${s.wdh ?? '–'} Wdh.` : `${s.dauer ?? '–'} s`) + (s.kg != null ? `<small>${zahlDE(s.kg)} kg</small>` : '') : '<small>offen</small>';
+      html += `<button class="satz-btn ${s.erledigt ? 'on' : ''}" data-action="satz" data-i="${i}" data-k="${k}" aria-label="Satz ${k + 1}${s.erledigt ? ' erledigt, zum Bearbeiten antippen' : ''}">${s.erledigt ? '✓ ' : ''}${k + 1}<small>${unter}</small></button>`;
+    });
+    html += `<button class="satz-btn" data-action="satz-plus" data-i="${i}" aria-label="Satz hinzufügen">+<small>Satz</small></button></div>`;
 
     const t = e.timer && e.timer.i === i ? e.timer : null;
+    const naechster = u.saetze.findIndex((s) => !s.erledigt);
     if (t) {
-      const st = segmentStatus(t, Date.now());
-      html += `<div class="timer"><div class="phase ${st.phase}" data-timer-phase>${st.phase === 'halten' ? 'Halten' : 'Pause'}</div>
-        <div class="zeit" data-timer-zeit>${mmss(st.rest)}</div>
+      const sst = segmentStatus(t, Date.now());
+      html += `<div class="timer"><div class="phase ${sst.phase}" data-timer-phase>${sst.phase === 'halten' ? 'Halten' : 'Pause'}</div>
+        <div class="zeit" data-timer-zeit>${mmss(sst.rest)}</div>
         <button class="btn small danger mt8" data-action="timer-stopp">${icon.stop}Stopp</button></div>`;
-    } else if (!u.erledigt) {
-      if (def.typ === 'halten' && u.halteS) {
-        html += `<button class="btn filled block mt8" data-action="satz-start" data-i="${i}">${icon.play}Satz ${u.saetzeErledigt + 1} starten · ${u.halteS} s halten</button>`;
-      } else {
-        html += `<button class="btn filled block mt8" data-action="satz-erledigt" data-i="${i}">${icon.check}Satz ${u.saetzeErledigt + 1} erledigt${u.wdh ? ` (${u.wdh} Wdh.)` : ''}</button>`;
-      }
-      if (u.saetzeErledigt > 0) html += `<button class="link-btn" data-action="satz-minus" data-i="${i}">Letzten Satz zurücknehmen</button>`;
-    }
-    if (u.uebungId === r.progression_exzentrik.uebung && S.kv.zusatzlastFrei) {
-      html += `<div class="cell" style="padding:8px 0"><div class="grow">Zusatzlast (kg)</div>
-        <input class="num-input" inputmode="decimal" data-input="ueb-zusatzlast" data-i="${i}" value="${u.zusatzlastKg != null ? String(u.zusatzlastKg).replace('.', ',') : ''}" placeholder="0"></div>`;
+    } else if ((u.typ === 'halten' || u.typ === 'dauer') && u.zielDauer && naechster >= 0) {
+      html += `<button class="btn filled block mt8" data-action="satz-timer" data-i="${i}">${icon.play}Satz ${naechster + 1} starten · ${u.zielDauer} s</button>`;
+    } else if (u.typ === 'wiederholungen' && naechster >= 0) {
+      html += `<div class="footnote mt8">Satz antippen, wenn geschafft. Erledigten Satz antippen, um kg/Wdh. zu ändern.</div>`;
     }
   }
 
-  // Schmerz während + Ampel
-  html += `<div class="divider"></div><div class="label-small">Stärkster Schmerz während der Übung</div>
-    ${schmerzSkala('ueb-schmerz', u.schmerzWaehrend, r, { extra: `data-i="${i}"` })}`;
-  if (a) {
-    html += `<div class="mt12">${ampelChip(u.schmerzWaehrend, r, true)}</div>`;
-    if (a === 'rot') html += `<button class="btn danger filled block mt12" data-action="ueb-abbrechen" data-i="${i}">${icon.stop}Übung abbrechen</button>`;
+  if (u.typ !== 'frei' && def.kategorie === 'oberkoerper' && /RIR/.test(dosierung(u.uebungId).intensitaet || '')) {
+    html += `<div class="kg-zeile"><label for="rir-${i}">Wdh. in Reserve (RIR, optional)</label>
+      <input id="rir-${i}" inputmode="numeric" data-input="rir" data-i="${i}" value="${u.rir ?? ''}" placeholder="–"><span class="einh"></span></div>`;
   }
-  html += ytButton(def, r, S.online);
-  html += `</div>`;
+
+  if (def.kniebelastend) {
+    const a = schmerzAmpel(u.schmerzWaehrend, r);
+    html += `<div class="divider"></div><div class="label-small">Stärkster Knieschmerz während der Übung</div>
+      ${schmerzSkala('ueb-schmerz', u.schmerzWaehrend, r, { extra: `data-i="${i}"` })}
+      ${a ? `<div class="mt8">${ampelChip(a, r, `${u.schmerzWaehrend}/10`)}</div>${a === 'rot' ? `<div class="hinweis-box">Über ${r.ampel.gelbMax}/10: Übung beenden. Laut Leitfaden sind während/direkt nach Belastung höchstens 5/10 in Ordnung.</div>` : ''}` : ''}`;
+  }
+  html += ytButton(def, r, S.online) + `</div>`;
   return html;
 }
 
-// ---------------------------------------------------------------- Timer-Takt
+function nachKarte(e, r) {
+  const mitBb = e.uebungen.some((u) => S.ueb[u.uebungId]?.kategorie === 'basketball' && (u.erledigt || u.saetze.some((x) => x.erledigt)));
+  const ok = e.schmerzDanach !== null;
+  const bbKarte = mitBb ? `<div class="card"><div class="title3">Basketball: Dauer und Anstrengung</div>
+      <div class="footnote mt8">${esc(r.basketball.text)}</div>
+      <div class="kg-zeile"><label for="bb-min">Dauer</label><input id="bb-min" inputmode="numeric" data-input="bb-minuten" value="${e.bbMinuten ?? ''}" placeholder="–"><span class="einh">Min.</span></div>
+      <div class="label-small mt12">Anstrengung (0 = locker, 10 = maximal)</div>${schmerzSkala('bb-anstrengung', e.bbAnstrengung, r, { mitAmpel: false })}
+      ${e.bbMinuten != null && e.bbAnstrengung != null ? `<div class="hinweis-box">Belastung dieser Einheit: <b>${e.bbMinuten * e.bbAnstrengung}</b></div>` : ''}</div>` : '';
+  return `<div class="card"><div class="title3">Knieschmerz direkt nach dem Training</div>
+      <div class="footnote mt8">Laut Leitfaden während/direkt nach Belastung höchstens 5/10. Der nächste Morgentest zeigt, ob es zurück aufs Ausgangsniveau geht.</div>
+      ${schmerzSkala('nach-schmerz', e.schmerzDanach, r)}</div>
+    ${bbKarte}
+    <div class="card"><div class="title3">Notiz (optional)</div><textarea class="mt12" data-input="einheit-notiz" placeholder="z. B. Beinpresse Gerät 3, Sitz Position 5">${esc(e.notiz || '')}</textarea></div>
+    <div class="row"><button class="btn" data-action="schritt-training">Zurück</button>
+      <button class="btn filled" data-action="einheit-speichern" ${ok ? '' : 'disabled'}>Einheit speichern</button></div>`;
+}
+
+// ---------------------------------------------------------------- Satz bearbeiten (Sheet)
+function satzSheet() {
+  const e = aktiveEinheit();
+  if (!e || !ui.satzEdit) return '';
+  const { i, k } = ui.satzEdit;
+  const u = e.uebungen[i];
+  const s = u.saetze[k];
+  const wdhFeld = u.typ === 'wiederholungen';
+  return `<div class="title2">${esc(u.name)} – Satz ${k + 1}</div>
+    <div class="section mt16"><div class="list">
+      ${u.mitGewicht ? `<div class="cell"><div class="grow">Gewicht (kg)</div><input class="num-input" inputmode="decimal" data-input="satz-kg" value="${s.kg != null ? zahlDE(s.kg, 2) : ''}"></div>` : ''}
+      <div class="cell"><div class="grow">${wdhFeld ? 'Wiederholungen' : 'Dauer (s)'}</div><input class="num-input" inputmode="numeric" data-input="satz-wert" value="${(wdhFeld ? s.wdh : s.dauer) ?? ''}"></div>
+    </div></div>
+    <button class="btn filled lg" data-action="sheet-close">Fertig</button>
+    <button class="btn danger block mt12" data-action="satz-zurueck">Satz zurücknehmen</button>`;
+}
+
+// ======================================================================== Timer-Takt
 export function tick() {
   const e = aktiveEinheit();
   if (!e || !e.timer) return false;
   const t = e.timer;
-  const st = segmentStatus(t, Date.now());
-  const u = e.uebungen[t.i];
-  let neuZeichnen = false;
-  if (st.halteFertig && !t.gezaehlt) {
+  const sst = segmentStatus(t, Date.now());
+  let neu = false;
+  if (sst.halteFertig && !t.gezaehlt) {
     t.gezaehlt = true;
-    u.saetzeErledigt += 1;
-    if (u.saetzeGeplant && u.saetzeErledigt >= u.saetzeGeplant) u.erledigt = true;
-    signal(st.phase === 'fertig' ? 3 : 2);
-    neuZeichnen = true;
+    const u = e.uebungen[t.i];
+    const k = u.saetze.findIndex((s) => !s.erledigt);
+    if (k >= 0) u.saetze[k] = { erledigt: true, dauer: t.halteS, kg: u.kg ?? null };
+    if (u.saetze.every((s) => s.erledigt)) u.erledigt = true;
+    signal(sst.phase === 'fertig' ? 3 : 2);
+    neu = true;
   }
-  if (st.phase === 'fertig') {
-    if (t.halteS === 0) signal(3); // Ende einer reinen Pause
+  if (sst.phase === 'fertig') {
+    if (t.halteS === 0) signal(3);
     e.timer = null;
     bildschirmWach(false);
-    neuZeichnen = true;
+    neu = true;
   }
-  if (neuZeichnen) { speichern('einheiten', e); return true; }
+  if (neu) { speichern('einheiten', e); return true; }
   const z = document.querySelector('[data-timer-zeit]');
   const p = document.querySelector('[data-timer-phase]');
-  if (z) z.textContent = mmss(st.rest);
-  if (p) {
-    p.textContent = st.phase === 'halten' ? 'Halten' : 'Pause';
-    p.className = `phase ${st.phase}`;
-  }
+  if (z) z.textContent = mmss(sst.rest);
+  if (p) { p.textContent = sst.phase === 'halten' ? 'Halten' : 'Pause'; p.className = `phase ${sst.phase}`; }
   return false;
 }
 
-// ---------------------------------------------------------------- Aktionen
-function neueEinheit() {
-  const plan = heutigerPlan();
-  const ids = [...plan.haupt, ...plan.begleitend];
-  return {
-    id: uid(),
-    datumISO: heute(),
-    startISO: new Date().toISOString(),
-    phase: S.kv.phase,
-    varianten: { ...S.kv.varianten },
-    schritt: 'vor',
-    abgeschlossen: false,
-    schmerzVor: null,
-    schmerzNach: null,
-    beschwerdefrei: null,
-    muskelkater: null,
-    notiz: '',
-    timer: null,
-    uebungen: ids.map((id) => {
-      const w = planWerte(id);
-      return {
-        uebungId: id,
-        name: w.u.name,
-        dosis: dosisText(id),
-        saetzeGeplant: w.u.typ === 'frei' ? null : w.saetze,
-        wdh: w.wdh,
-        halteS: w.halteS,
-        pauseS: w.pauseS,
-        zusatzlastKg: w.zusatzlastKg,
-        saetzeErledigt: 0,
-        schmerzWaehrend: null,
-        erledigt: false,
-        abgebrochen: false,
-        ausgelassen: null,
-      };
-    }),
-  };
-}
-
+// ======================================================================== Aktionen
 const aktiv = () => aktiveEinheit();
 const save = (e) => speichern('einheiten', e);
+const istLetzter = (u) => u.saetze.filter((s) => !s.erledigt).length <= 1;
+
+function pauseStarten(e, i) {
+  const u = e.uebungen[i];
+  if (!u.pauseS || istLetzter(u) && u.saetze.every((s) => s.erledigt)) return;
+  audioFreischalten();
+  bildschirmWach(true);
+  e.timer = { i, startMs: Date.now(), halteS: 0, pauseS: u.pauseS, ohnePause: false, gezaehlt: true };
+}
 
 export const actions = {
+  'morgen-sls': (el) => { ui.morgen.sls = Number(el.dataset.wert); },
+  'morgen-steif': (el) => { ui.morgen.steif = Number(el.dataset.wert); },
+  'morgen-steif-auf': () => { ui.morgen.steifOffen = true; },
+  'morgen-aendern': () => {
+    const c = S.morgenchecks.find((x) => x.datum === heute());
+    ui.morgen = { sls: c.sls, steif: c.steifigkeit ?? null, notiz: c.notiz || '', steifOffen: c.steifigkeit != null };
+    ui.bearbeiten = true;
+  },
+  'morgen-abbrechen': () => { ui.bearbeiten = false; },
+  'morgen-speichern': async () => {
+    const h = heute();
+    const d = ui.morgen;
+    const rec = { datum: h, sls: d.sls, steifigkeit: d.steif, notiz: d.notiz.trim(), erfasstISO: new Date().toISOString() };
+    await speichern('morgenchecks', rec);
+    const st = status(h);
+    await speichern('morgenchecks', { ...rec, ampel: st.ampelHeute });
+    ui.morgen = { sls: null, steif: null, notiz: '', steifOffen: false };
+    ui.bearbeiten = false;
+    ui.auswahl = { datum: null, sel: {} };
+    window.scrollTo(0, 0);
+  },
+  teil: (el) => { ui.auswahl.sel[el.dataset.key] = !ui.auswahl.sel[el.dataset.key]; },
+  'iso-variante': () => openSheet('Isometrie-Übung', () => {
+    const akt = S.kv.isoVariante || 'iso_beinpresse';
+    return `<div class="footnote mb8">Alle mit 5 × 45 s bei ca. 70 % Maximalkraft. Mit Gewicht: Beinpresse und Beinstrecker.</div><div class="list">
+      ${Object.values(S.ueb).filter((u) => u.gruppe === 'iso').map((u) => `<button class="cell" data-action="iso-wahl" data-id="${u.id}"><div class="grow">${esc(u.name)}</div>${u.id === akt ? '<span class="value">✓</span>' : ''}</button>`).join('')}</div>`;
+  }),
+  'iso-wahl': async (el) => { await setKV('isoVariante', el.dataset.id); closeSheet(); },
   'einheit-start': async () => {
     if (aktiv()) return;
-    await save(neueEinheit());
+    const e = neueEinheit();
+    if (!e.uebungen.length) { toast('Keine freigeschalteten Übungen ausgewählt.'); return; }
+    await save(e);
     window.scrollTo(0, 0);
   },
   'uebung-info': (el) => oeffneUebung(el.dataset.id),
-  'stufen-oeffnen': () => oeffneStufen(),
-  'vor-schmerz': async (el) => { const e = aktiv(); e.schmerzVor = Number(el.dataset.wert); await save(e); },
-  'nach-schmerz': async (el) => { const e = aktiv(); e.schmerzNach = Number(el.dataset.wert); await save(e); },
-  muskelkater: async (el) => { const e = aktiv(); e.muskelkater = el.dataset.wert === 'ja'; await save(e); },
-  beschwerdefrei: async (el) => { const e = aktiv(); e.beschwerdefrei = el.dataset.wert === 'ja'; await save(e); },
-  schritt: async (el) => {
-    const e = aktiv();
-    if (el.dataset.wert === 'training' && e.schritt === 'vor') {
-      // Plyometrie-Regeln anwenden
-      const r = R();
-      const proWoche = plyoEinheitenWoche(S.einheiten, heute(), S.ueb);
-      for (const u of e.uebungen) {
-        if (!S.ueb[u.uebungId]?.plyometrie || u.ausgelassen === 'manuell_ein') continue;
-        if (e.muskelkater) u.ausgelassen = 'muskelkater';
-        else if (!plyoErlaubt(proWoche, r)) u.ausgelassen = 'limit';
-        else u.ausgelassen = null;
-      }
-    }
-    if (el.dataset.wert === 'nach' && e.timer) { e.timer = null; bildschirmWach(false); }
-    e.schritt = el.dataset.wert;
-    await save(e);
-    window.scrollTo(0, 0);
-  },
-  'ueb-schmerz': async (el) => {
-    const e = aktiv(); const u = e.uebungen[+el.dataset.i];
-    u.schmerzWaehrend = Number(el.dataset.wert);
+  variante: async (el) => { const e = aktiv(); e.uebungen[+el.dataset.i].variante = el.dataset.wert; await save(e); },
+  'frei-erledigt': async (el) => { const e = aktiv(); const u = e.uebungen[+el.dataset.i]; u.erledigt = !u.erledigt; await save(e); },
+  satz: async (el) => {
+    const e = aktiv(); const i = +el.dataset.i; const k = +el.dataset.k; const u = e.uebungen[i];
+    const s = u.saetze[k];
+    if (s.erledigt) { ui.satzEdit = { i, k }; openSheet('Satz', satzSheet); return; }
+    if (u.typ === 'halten' || u.typ === 'dauer') u.saetze[k] = { erledigt: true, dauer: u.zielDauer, kg: u.kg ?? null };
+    else u.saetze[k] = { erledigt: true, wdh: u.zielWdh, kg: u.kg ?? null };
+    if (u.saetze.every((x) => x.erledigt)) u.erledigt = true;
+    else pauseStarten(e, i);
     await save(e);
   },
-  'ueb-abbrechen': async (el) => {
-    const e = aktiv(); const i = +el.dataset.i;
-    e.uebungen[i].abgebrochen = true;
-    if (e.timer?.i === i) { e.timer = null; bildschirmWach(false); }
-    await save(e);
-    toast('Übung abgebrochen. Nächste Einheit Belastung reduzieren.');
+  'satz-plus': async (el) => { const e = aktiv(); const u = e.uebungen[+el.dataset.i]; u.saetze.push({ erledigt: false }); u.erledigt = false; await save(e); },
+  'satz-zurueck': async () => {
+    const e = aktiv(); const { i, k } = ui.satzEdit; const u = e.uebungen[i];
+    if (k >= (u.zielSaetze || 0)) u.saetze.splice(k, 1); else u.saetze[k] = { erledigt: false };
+    u.erledigt = false;
+    await save(e); closeSheet();
   },
-  'ueb-fortsetzen': async (el) => { const e = aktiv(); e.uebungen[+el.dataset.i].abgebrochen = false; await save(e); },
-  'ueb-trotzdem': async (el) => {
-    if (!confirm('Die Regel empfiehlt, diese Übung heute auszulassen. Trotzdem einblenden?')) return;
-    const e = aktiv(); e.uebungen[+el.dataset.i].ausgelassen = 'manuell_ein'; await save(e);
-  },
-  'ueb-erledigt': async (el) => {
-    const e = aktiv(); const u = e.uebungen[+el.dataset.i];
-    u.erledigt = !u.erledigt;
-    if (u.ausgelassen === 'manuell_ein') u.ausgelassen = null;
-    await save(e);
-  },
-  'satz-start': async (el) => {
+  'satz-timer': async (el) => {
     const e = aktiv(); const i = +el.dataset.i; const u = e.uebungen[i];
     audioFreischalten();
     bildschirmWach(true);
-    const letzter = u.saetzeGeplant ? u.saetzeErledigt + 1 >= u.saetzeGeplant : false;
-    e.timer = { i, startMs: Date.now(), halteS: u.halteS, pauseS: u.pauseS || 0, ohnePause: letzter, gezaehlt: false };
-    await save(e);
-  },
-  'satz-erledigt': async (el) => {
-    const e = aktiv(); const i = +el.dataset.i; const u = e.uebungen[i];
-    u.saetzeErledigt += 1;
-    const fertig = u.saetzeGeplant && u.saetzeErledigt >= u.saetzeGeplant;
-    if (fertig) u.erledigt = true;
-    if (!fertig && u.pauseS) {
-      audioFreischalten();
-      bildschirmWach(true);
-      e.timer = { i, startMs: Date.now(), halteS: 0, pauseS: u.pauseS, ohnePause: false, gezaehlt: true };
-    }
-    await save(e);
-  },
-  'satz-minus': async (el) => {
-    const e = aktiv(); const u = e.uebungen[+el.dataset.i];
-    u.saetzeErledigt = Math.max(0, u.saetzeErledigt - 1);
-    u.erledigt = false;
+    e.timer = { i, startMs: Date.now(), halteS: u.zielDauer, pauseS: u.pauseS || 0, ohnePause: istLetzter(u), gezaehlt: false };
     await save(e);
   },
   'timer-stopp': async () => { const e = aktiv(); e.timer = null; bildschirmWach(false); await save(e); },
+  'ueb-schmerz': async (el) => { const e = aktiv(); e.uebungen[+el.dataset.i].schmerzWaehrend = Number(el.dataset.wert); await save(e); },
+  'schritt-nach': async () => { const e = aktiv(); e.schritt = 'nach'; if (e.timer) { e.timer = null; bildschirmWach(false); } await save(e); window.scrollTo(0, 0); },
+  'schritt-training': async () => { const e = aktiv(); e.schritt = 'training'; await save(e); },
+  'bb-anstrengung': async (el) => { const e = aktiv(); e.bbAnstrengung = Number(el.dataset.wert); await save(e); },
+  'hsr-tausch': (el) => {
+    const i = +el.dataset.i;
+    openSheet('Übung tauschen', () => {
+      const e = aktiv(); const u = e.uebungen[i];
+      const opts = [u.slot, ...R().hsr.wechsel].filter((id, k, a) => a.indexOf(id) === k);
+      return `<div class="footnote mb8">Beinstrecker oder Split Squat ersetzen eine der drei Standardübungen, nicht zusätzlich. Die Wahl bleibt für die nächsten Einheiten gespeichert.</div><div class="list">
+        ${opts.map((id) => { const x = S.ueb[id]; const gesp = (x.abWoche || 1) > Math.max(1, e.planWoche || 1);
+          return `<button class="cell ${gesp ? 'gesperrt' : ''}" data-action="hsr-tausch-wahl" data-i="${i}" data-id="${id}" ${gesp ? 'disabled' : ''}><div class="grow">${esc(x.name)}${id === u.slot ? ' <span class="footnote">(Standard)</span>' : ''}${gesp ? ` <span class="lock">ab Woche ${x.abWoche}</span>` : ''}</div>${id === u.uebungId ? '<span class="value">✓</span>' : ''}</button>`; }).join('')}</div>`;
+    });
+  },
+  'hsr-tausch-wahl': async (el) => {
+    const e = aktiv(); const i = +el.dataset.i; const u = e.uebungen[i]; const id = el.dataset.id;
+    const tausch = { ...(S.kv.hsrTausch || {}) };
+    for (const [k, v] of Object.entries(tausch)) if (v === id && k !== u.slot) delete tausch[k];
+    if (id === u.slot) delete tausch[u.slot]; else tausch[u.slot] = id;
+    await setKV('hsrTausch', tausch);
+    const neu = eintrag(S.ueb[id], u.teil, e.ampel, R(), e.planWoche || 1);
+    e.uebungen[i] = { ...neu, slot: u.slot };
+    await save(e); closeSheet();
+  },
+  'nach-schmerz': async (el) => { const e = aktiv(); e.schmerzDanach = Number(el.dataset.wert); await save(e); },
   'einheit-speichern': async () => {
     const e = aktiv(); const r = R();
-    e.abgeschlossen = true;
-    e.timer = null;
-    e.endeISO = new Date().toISOString();
-    delete e.schritt;
+    for (const u of e.uebungen) if (u.typ !== 'frei') u.erledigt = u.saetze.length > 0 && u.saetze.every((s) => s.erledigt);
+    e.abgeschlossen = true; e.timer = null; e.endeISO = new Date().toISOString(); delete e.schritt;
     await save(e);
     bildschirmWach(false);
-    if (einheitRot(e, r)) {
-      await speichern('ereignisse', { id: uid(), typ: 'rot', datumISO: e.datumISO, einheitId: e.id, wert: maxSchmerzWaehrend(e), antwort: null, antwortISO: null });
-      toast('Gespeichert. Schmerz über 5: nächste Einheit Belastung reduzieren.');
-    } else {
-      toast('Einheit gespeichert.');
-    }
+    const steig = e.uebungen.filter((u) => S.ueb[u.uebungId]?.hsr).map((u) => ({ u, n: hsrNaechste(letzterEintrag(S.einheiten, u.uebungId), r) })).filter((x) => x.n.erfolg);
+    toast(steig.length ? `Gespeichert. Nächstes Mal: ${steig.map((x) => `${x.u.name.replace(' (HSR)', '')} ${r.hsr.saetze}×${x.n.zielWdh}`).join(', ')}.` : 'Einheit gespeichert.');
     window.scrollTo(0, 0);
   },
   'einheit-verwerfen': async () => {
     if (!confirm('Diese Einheit wirklich verwerfen? Die Eingaben dieser Einheit gehen verloren.')) return;
-    const e = aktiv();
     bildschirmWach(false);
-    await loeschen('einheiten', e.id);
-  },
-  'morgen-schmerz': (el) => { draft.morgen.schmerz = Number(el.dataset.wert); },
-  'morgen-alltag': (el) => { draft.morgen.alltag = el.dataset.wert === 'ja'; },
-  'morgen-skip': async () => { await setKV('morgenUebersprungen', heute()); },
-  'morgen-speichern': async () => {
-    const d = draft.morgen;
-    const h = heute();
-    await speichern('morgen', {
-      datumISO: h, bezugDatumISO: addTage(h, -1), schmerz: d.schmerz, alltagsschmerzZunahme: d.alltag,
-      notiz: d.notiz.trim(), erfasstISO: new Date().toISOString(),
-    });
-    draft.morgen = { schmerz: null, alltag: null, notiz: '' };
-    toast('Morgenwert gespeichert.');
-  },
-  pruefung: async (el) => {
-    const antwort = el.dataset.antwort;
-    const jetzt = new Date().toISOString();
-    const h = heute();
-    for (const ev of S.ereignisse.filter((x) => x.typ === 'rot' && !x.antwort && x.datumISO <= h)) {
-      await speichern('ereignisse', { ...ev, antwort, antwortISO: jetzt });
-    }
-    if (antwort === 'besser') toast('Gut. Weiter mit Physio abgestimmt trainieren.');
-  },
-  'pause-quittieren': async () => {
-    if (!confirm('Hast du die Beschwerden mit deinem Arzt besprochen? Der Hinweis wird dann ausgeblendet, bis ein neuer Auslöser auftritt.')) return;
-    await setKV('pauseQuittiertISO', new Date().toISOString());
-  },
-  progression: async (el) => {
-    const r = R();
-    const letzteExz = letzteAbgeschlossene(S.einheiten, (e) => e.uebungen.some((u) => u.uebungId === r.progression_exzentrik.uebung));
-    if (el.dataset.wert === 'steigern') {
-      const prog = exzProgression(letzteExz, S.kv.exzStufe, r);
-      if (prog?.typ === 'steigern') await setKV('exzStufe', prog.naechsterIdx);
-      toast('Neue Stufe gespeichert.');
-    }
-    if (el.dataset.wert === 'zusatzlast') await setKV('zusatzlastFrei', true);
-    await setKV('progressionGesehen', letzteExz?.id || null);
-  },
-  'phasenhinweis-aus': async () => {
-    const l = letzteAbgeschlossene(S.einheiten, (e) => e.phase === S.kv.phase);
-    await setKV('phasenHinweisGesehen', l?.id || null);
+    await loeschen('einheiten', aktiv().id);
   },
   'home-aus': async () => { await setKV('homeHinweisAus', true); },
   'backup-spaeter': async () => { await setKV('backupSpaeter', heute()); },
   'visap-spaeter': async () => { await setKV('visapSpaeter', heute()); },
-  'visap-neu-heute': () => oeffneVisap(),
 };
 
 export const inputs = {
-  'morgen-notiz': (el) => { draft.morgen.notiz = el.value; return false; },
+  'morgen-notiz': (el) => { ui.morgen.notiz = el.value; return false; },
   'einheit-notiz': (el) => { const e = aktiv(); e.notiz = el.value; save(e); return false; },
-  'ueb-zusatzlast': (el) => {
-    const e = aktiv(); const kg = parseZahl(el.value);
-    e.uebungen[+el.dataset.i].zusatzlastKg = kg;
-    save(e);
-    setKV('zusatzlastKg', kg); // Vorschlag für die nächste Einheit
-    return false;
+  kg: (el) => {
+    const e = aktiv(); const u = e.uebungen[+el.dataset.i];
+    u.kg = parseZahl(el.value);
+    save(e); return false;
+  },
+  'bb-minuten': (el) => { const e = aktiv(); e.bbMinuten = parseZahl(el.value); save(e); return false; },
+  rir: (el) => { const e = aktiv(); e.uebungen[+el.dataset.i].rir = parseZahl(el.value); save(e); return false; },
+  'satz-kg': (el) => { const e = aktiv(); const { i, k } = ui.satzEdit; e.uebungen[i].saetze[k].kg = parseZahl(el.value); save(e); return false; },
+  'satz-wert': (el) => {
+    const e = aktiv(); const { i, k } = ui.satzEdit; const u = e.uebungen[i];
+    u.saetze[k][u.typ === 'wiederholungen' ? 'wdh' : 'dauer'] = parseZahl(el.value);
+    save(e); return false;
   },
 };

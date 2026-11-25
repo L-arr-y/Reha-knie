@@ -1,6 +1,6 @@
 // Wiederverwendbare Bausteine: Symbole, Chips, Ampel, Schmerzskala, YouTube-Button, Sheet, Toast.
 import { esc } from './util.js';
-import { ampel, youtubeUrl } from './regeln.js';
+import { youtubeUrl } from './regeln.js';
 
 const svg = (inner, vb = '0 0 24 24') =>
   `<svg viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
@@ -8,6 +8,8 @@ const svg = (inner, vb = '0 0 24 24') =>
 export const icon = {
   heute: svg('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/>'),
   uebungen: svg('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/>'),
+  uebersicht: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 12l4-5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M12 5v1.5M5 12h1.5M17.5 12H19"/>'),
+  mehr: svg('<circle cx="5.5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.6" fill="currentColor" stroke="none"/>'),
   verlauf: svg('<path d="M4 20V4M4 20h16"/><path d="M7.5 15l4-4.5 3 3L20 7"/>'),
   warnzeichen: svg('<path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9.5v4.5"/><circle cx="12" cy="17.3" r="1.1" fill="currentColor" stroke="none"/>'),
   einstellungen: svg('<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>'),
@@ -26,28 +28,39 @@ export function statusChip(status, eigen = false) {
   return `<span class="chip ${esc(status)}">${esc(status === 'ergänzend' ? 'ergänzend' : 'OFFEN')}</span>`;
 }
 
+/** Ampel für einen Schmerzwert während/nach einer Übung (gleiche Grenzen wie der Morgentest). */
+export function schmerzAmpel(wert, r) {
+  if (wert === null || wert === undefined || wert === '' || !Number.isFinite(Number(wert))) return null;
+  const v = Number(wert);
+  return v <= r.ampel.gruenMax ? 'gruen' : v <= r.ampel.gelbMax ? 'gelb' : 'rot';
+}
+
 /** Ampel als Chip: Farbe + Symbol + Text (nie nur Farbe). */
-export function ampelChip(wert, r, mitText = false) {
-  const a = ampel(wert, r);
-  if (!a) return '';
-  const st = r.ampel.stufen[a];
-  return `<span class="ampel ${a}" role="status"><span class="s" aria-hidden="true">${esc(st.symbol)}</span>${esc(st.titel)} · ${esc(wert)}/10</span>${
-    mitText ? `<div class="ampel-text">${esc(st.text)}</div>` : ''}`;
+export function ampelChip(ampelKey, r, zusatz = '') {
+  if (!ampelKey) return '';
+  const st = r.ampel.stufen[ampelKey];
+  return `<span class="ampel ${ampelKey}" role="status"><span class="s" aria-hidden="true">${esc(st.symbol)}</span>${esc(st.titel)}${zusatz ? ` · ${esc(zusatz)}` : ''}</span>`;
 }
 
 /**
- * Schmerzskala 0–10 mit großen Tasten.
- * mitAmpel: gewählte Taste in Ampelfarbe (sonst neutral blau).
+ * Schmerzskala 0–10 mit großen Tasten. mitAmpel: gewählte Taste in Ampelfarbe (sonst neutral blau).
  */
 export function schmerzSkala(action, wert, r, { mitAmpel = true, extra = '' } = {}) {
   let html = `<div class="scale" role="group" aria-label="Schmerz 0 bis 10">`;
   for (let i = 0; i <= 10; i++) {
     const sel = wert !== null && wert !== undefined && Number(wert) === i;
-    const cls = mitAmpel ? ampel(i, r) : 'neutral';
+    const cls = mitAmpel ? schmerzAmpel(i, r) : 'neutral';
     html += `<button type="button" class="${cls}" aria-pressed="${sel}" data-action="${esc(action)}" data-wert="${i}" ${extra}>${i}</button>`;
   }
   html += `</div><div class="scale-labels"><span>0 = kein Schmerz</span><span>10 = stärkster</span></div>`;
   return html;
+}
+
+/** Seitenkopf mit großem Titel und Warnzeichen-Knopf oben rechts. */
+export function kopf(titel, untertitel = '') {
+  return `<div class="kopf"><h1 class="large-title">${esc(titel)}</h1>
+    <button class="warn-btn" data-action="warn-open" aria-label="Warnzeichen anzeigen">${icon.warnzeichen}</button></div>
+    ${untertitel ? `<p class="subtitle">${untertitel}</p>` : ''}`;
 }
 
 export function ytButton(uebung, regeln, online) {

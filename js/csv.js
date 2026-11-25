@@ -1,20 +1,27 @@
 // CSV für deutsches Excel/Numbers: UTF-8 mit BOM, Semikolon, Dezimalkomma, Datum TT.MM.JJJJ (+ ISO-Spalte).
-// Reine Funktionen (ohne Bildschirm) – dadurch testbar.
-import { deDatum, addTage, parseZahl } from './util.js';
-import { abgeschlossene, maxSchmerzWaehrend } from './regeln.js';
+// Je Tabelle eine Datei. Reine Funktionen (ohne Bildschirm) – dadurch testbar.
+import { deDatum, parseZahl } from './util.js';
 
 export const SEP = ';';
 export const BOM = '﻿';
 const NL = '\r\n';
 
 export const KOPF = {
-  einheiten: ['Einheit-ID', 'Datum', 'Datum (ISO)', 'Uhrzeit', 'Stufe', 'Übung-ID', 'Übung', 'Sätze geplant', 'Sätze erledigt',
-    'Wiederholungen', 'Haltezeit (s)', 'Pause (s)', 'Zusatzlast (kg)', 'Schmerz während', 'Status'],
-  schmerz: ['Einheit-ID', 'Datum', 'Datum (ISO)', 'Uhrzeit', 'Stufe', 'Schmerz vorher', 'Schmerz nachher', 'Stärkster Schmerz während',
-    'Beschwerdefrei', 'Muskelkater', 'Notiz', 'Schmerz nächster Morgen', 'Alltagsschmerz nimmt zu (Morgen)', 'Notiz Morgen',
-    'Start (ISO)', 'Ende (ISO)'],
+  morgenchecks: ['Datum', 'Datum (ISO)', 'Morgentest (0–10)', 'Morgensteifigkeit (0–10)', 'Ampel', 'Stufe', 'Notiz', 'Erfasst (ISO)'],
+  einheiten: ['Einheit-ID', 'Datum', 'Datum (ISO)', 'Uhrzeit', 'Stufe', 'Ampel', 'Teile', 'Oberkörper-Block', 'Planwoche',
+    'Übung-ID', 'Übung', 'Teil', 'Gewicht (kg)', 'Ziel-Sätze', 'Ziel-Wdh.', 'Ziel-Dauer (s)', 'Variante', 'Schmerz während', 'RIR',
+    'Übung erledigt', 'Schmerz danach', 'Notiz', 'Start (ISO)', 'Ende (ISO)', 'Basketball-Dauer (min)', 'Basketball-Anstrengung (0–10)'],
+  saetze: ['Einheit-ID', 'Datum', 'Datum (ISO)', 'Übung-ID', 'Übung', 'Satz', 'Wiederholungen', 'Dauer (s)', 'Gewicht (kg)', 'Erledigt'],
+  stufen: ['Wechsel-ID', 'Datum', 'Datum (ISO)', 'Von Stufe', 'Nach Stufe', 'Grund', 'Zeit (ISO)'],
+  rtp: ['RTP-ID', 'Datum', 'Datum (ISO)', 'Sprungweite links (cm)', 'Sprungweite rechts (cm)', 'Sprung-Schmerz (0–10)',
+    '6-m-Hop links (s)', '6-m-Hop rechts (s)', 'Hop ohne Schmerzanstieg', 'Teamtraining 2× ohne Gelb', 'Selbsteinschätzung (%)',
+    'LSI Sprung (%)', 'LSI Hop (%)', 'Alle Kriterien erfüllt'],
   visap: ['VISA-P-ID', 'Datum', 'Datum (ISO)', 'Score', 'Notiz'],
+  einstellungen: ['Schlüssel', 'Wert (JSON)'],
 };
+
+const AMPEL = { gruen: 'grün', gelb: 'gelb', rot: 'rot' };
+const AMPEL_ZURUECK = { 'grün': 'gruen', gelb: 'gelb', rot: 'rot' };
 
 /** Ein Feld formatieren: Zahl mit Komma, ja/nein, Anführungszeichen wenn nötig. */
 export function feld(v) {
@@ -35,18 +42,13 @@ export function tabelle(kopf, zeilen) {
 export function parse(text) {
   let t = String(text);
   if (t.charCodeAt(0) === 0xfeff) t = t.slice(1);
-  const ersteZeile = t.split(/\r?\n/)[0] || '';
-  const sep = ersteZeile.includes(';') ? ';' : ',';
+  const sep = (t.split(/\r?\n/)[0] || '').includes(';') ? ';' : ',';
   const rows = [];
-  let row = [];
-  let f = '';
-  let q = false;
+  let row = []; let f = ''; let q = false;
   for (let i = 0; i < t.length; i++) {
     const c = t[i];
     if (q) {
-      if (c === '"') {
-        if (t[i + 1] === '"') { f += '"'; i++; } else q = false;
-      } else f += c;
+      if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c;
     } else if (c === '"') q = true;
     else if (c === sep) { row.push(f); f = ''; }
     else if (c === '\n' || c === '\r') {
@@ -63,132 +65,159 @@ const uhrzeit = (iso) => {
   const d = new Date(iso);
   return isNaN(d) ? '' : d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 };
-const stufeNr = (phase) => (phase ? Number(String(phase).replace('stufe', '')) || phase : '');
-const status = (u) => (u.abgebrochen ? 'abgebrochen' : u.ausgelassen && u.ausgelassen !== 'manuell_ein' ? 'ausgelassen' : u.erledigt ? 'erledigt' : u.saetzeErledigt > 0 ? 'teilweise' : 'offen');
+const sortDatum = (l) => [...(l || [])].sort((a, b) => ((a.datum + (a.startISO || '')) < (b.datum + (b.startISO || '')) ? -1 : 1));
 
-// ---------------------------------------------------------------- Export
-export function exportEinheiten(einheiten) {
-  const zeilen = [];
-  for (const e of abgeschlossene(einheiten)) {
-    for (const u of e.uebungen || []) {
-      zeilen.push([e.id, deDatum(e.datumISO), e.datumISO, uhrzeit(e.startISO), stufeNr(e.phase), u.uebungId, u.name || u.uebungId,
-        u.saetzeGeplant, u.saetzeErledigt, u.wdh, u.halteS, u.pauseS, u.zusatzlastKg, u.schmerzWaehrend, status(u)]);
-    }
-  }
-  return tabelle(KOPF.einheiten, zeilen);
+// ======================================================================== Export
+/** infoAm: Funktion datum → { ampel, stufe } aus dem Reha-Status (berechnet, nicht gespeichert). */
+export function exportMorgenchecks(checks, infoAm = () => ({})) {
+  return tabelle(KOPF.morgenchecks, sortDatum(checks).map((c) => {
+    const i = infoAm(c.datum) || {};
+    return [deDatum(c.datum), c.datum, c.sls, c.steifigkeit ?? null, AMPEL[i.ampel || c.ampel] || '', i.stufe ?? null, c.notiz || '', c.erfasstISO || ''];
+  }));
 }
 
-export function exportSchmerz(einheiten, morgen) {
-  const zeilen = abgeschlossene(einheiten).map((e) => {
-    const m = (morgen || []).find((x) => (x.bezugDatumISO || addTage(x.datumISO, -1)) === e.datumISO);
-    return [e.id, deDatum(e.datumISO), e.datumISO, uhrzeit(e.startISO), stufeNr(e.phase), e.schmerzVor, e.schmerzNach,
-      maxSchmerzWaehrend(e), e.beschwerdefrei, e.muskelkater, e.notiz || '', m ? m.schmerz : null,
-      m ? m.alltagsschmerzZunahme : null, m ? m.notiz || '' : '', e.startISO, e.endeISO || ''];
-  });
-  return tabelle(KOPF.schmerz, zeilen);
+export function exportEinheiten(einheiten) {
+  const z = [];
+  for (const e of sortDatum(einheiten).filter((x) => x.abgeschlossen)) {
+    for (const u of e.uebungen) {
+      z.push([e.id, deDatum(e.datum), e.datum, uhrzeit(e.startISO), e.stufe, AMPEL[e.ampel] || '', (e.teile || []).join('+'), e.okBlock || '', e.planWoche ?? null,
+        u.uebungId, u.name, u.teil, u.kg ?? null, u.zielSaetze ?? null, u.zielWdh ?? null, u.zielDauer ?? null, u.variante || '', u.schmerzWaehrend ?? null, u.rir ?? null,
+        !!u.erledigt, e.schmerzDanach ?? null, e.notiz || '', e.startISO || '', e.endeISO || '', e.bbMinuten ?? null, e.bbAnstrengung ?? null]);
+    }
+  }
+  return tabelle(KOPF.einheiten, z);
+}
+
+export function exportSaetze(einheiten) {
+  const z = [];
+  for (const e of sortDatum(einheiten).filter((x) => x.abgeschlossen)) {
+    for (const u of e.uebungen) {
+      (u.saetze || []).forEach((s, k) => z.push([e.id, deDatum(e.datum), e.datum, u.uebungId, u.name, k + 1, s.wdh ?? null, s.dauer ?? null, s.kg ?? null, !!s.erledigt]));
+    }
+  }
+  return tabelle(KOPF.saetze, z);
+}
+
+/** stufenVerlauf aus dem Reha-Status (inkl. automatischer Rot-Rückstufungen) + gespeicherte Wechsel (mit ID). */
+export function exportStufen(stufenVerlauf, wechsel) {
+  const byKey = new Map((wechsel || []).map((w) => [`${w.datum}|${w.nach}|${w.grund}`, w]));
+  return tabelle(KOPF.stufen, (stufenVerlauf || []).map((s) => {
+    const w = byKey.get(`${s.datum}|${s.nach}|${s.grund}`);
+    return [w?.id || '', deDatum(s.datum), s.datum, s.von ?? null, s.nach, s.grund, w?.zeitISO || ''];
+  }));
+}
+
+/** auswerten: Funktion check → { lsiSprung, lsiHop, alleErfuellt } */
+export function exportRtp(checks, auswerten = () => ({})) {
+  return tabelle(KOPF.rtp, sortDatum(checks).map((c) => {
+    const a = auswerten(c) || {};
+    return [c.id, deDatum(c.datum), c.datum, c.sprungweiteL ?? null, c.sprungweiteR ?? null, c.sprungSchmerz ?? null, c.hop6mL ?? null, c.hop6mR ?? null,
+      c.hopOhneAnstieg ?? null, c.teamtraining ?? null, c.selbsteinschaetzung ?? null, a.lsiSprung ?? null, a.lsiHop ?? null, a.alleErfuellt ?? null];
+  }));
 }
 
 export function exportVisap(visap) {
-  const zeilen = [...(visap || [])].sort((a, b) => (a.datumISO < b.datumISO ? -1 : 1))
-    .map((v) => [v.id, deDatum(v.datumISO), v.datumISO, v.score, v.notiz || '']);
-  return tabelle(KOPF.visap, zeilen);
+  return tabelle(KOPF.visap, sortDatum(visap).map((v) => [v.id, deDatum(v.datum), v.datum, v.score, v.notiz || '']));
+}
+
+export function exportEinstellungen(kv, schluessel) {
+  return tabelle(KOPF.einstellungen, schluessel.filter((k) => k in kv).map((k) => [k, JSON.stringify(kv[k])]));
 }
 
 export function dateiname(typ, heuteIso) { return `reha_${typ}_${heuteIso}.csv`; }
 
-// ---------------------------------------------------------------- Import
+// ======================================================================== Import
 export function erkenneTyp(rows) {
   const k = (rows[0] || []).map((x) => x.trim());
   for (const [typ, kopf] of Object.entries(KOPF)) if (kopf.every((h) => k.includes(h))) return typ;
   return null;
 }
 
-function alsObjekte(rows) {
+function objekte(rows) {
   const kopf = rows[0].map((x) => x.trim());
   return rows.slice(1).map((r) => Object.fromEntries(kopf.map((h, i) => [h, (r[i] ?? '').trim()])));
 }
 const zahl = (s) => parseZahl(s);
 const janein = (s) => (s === 'ja' ? true : s === 'nein' ? false : null);
-const isoAus = (o) => o['Datum (ISO)'] || deZuIso(o.Datum);
-function deZuIso(de) {
-  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(de || '');
+function isoAus(o) {
+  if (o['Datum (ISO)']) return o['Datum (ISO)'];
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(o.Datum || '');
   return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : '';
 }
 
-/**
- * Wandelt eingelesene CSV-Dateien in Datensätze um.
- * dateien: { einheiten?: rows, schmerz?: rows, visap?: rows }
- */
+/** Eingelesene Dateien { typ: rows } → Datensätze je Tabelle. */
 export function importieren(dateien) {
-  const einheiten = new Map();
-  const morgen = new Map();
-  const visap = [];
+  const out = { morgenchecks: [], einheiten: [], stufenwechsel: [], rtpchecks: [], visap: [], einstellungen: {} };
 
-  if (dateien.schmerz) {
-    for (const o of alsObjekte(dateien.schmerz)) {
-      const id = o['Einheit-ID'];
-      const datumISO = isoAus(o);
-      if (!id || !datumISO) continue;
-      const startISO = o['Start (ISO)'] || `${datumISO}T${o.Uhrzeit || '12:00'}:00`;
+  for (const o of dateien.morgenchecks ? objekte(dateien.morgenchecks) : []) {
+    const datum = isoAus(o); const sls = zahl(o['Morgentest (0–10)']);
+    if (!datum || sls === null) continue;
+    out.morgenchecks.push({ datum, sls, steifigkeit: zahl(o['Morgensteifigkeit (0–10)']), ampel: AMPEL_ZURUECK[o.Ampel] || null, notiz: o.Notiz || '', erfasstISO: o['Erfasst (ISO)'] || `${datum}T07:00:00` });
+  }
+
+  const einheiten = new Map();
+  for (const o of dateien.einheiten ? objekte(dateien.einheiten) : []) {
+    const id = o['Einheit-ID']; const datum = isoAus(o);
+    if (!id || !datum) continue;
+    if (!einheiten.has(id)) {
       einheiten.set(id, {
-        id, datumISO, startISO, endeISO: o['Ende (ISO)'] || startISO, phase: o.Stufe ? `stufe${o.Stufe}` : 'stufe1',
-        abgeschlossen: true, schmerzVor: zahl(o['Schmerz vorher']), schmerzNach: zahl(o['Schmerz nachher']),
-        beschwerdefrei: janein(o.Beschwerdefrei), muskelkater: janein(o.Muskelkater), notiz: o.Notiz || '', timer: null, uebungen: [],
-        _maxWaehrend: zahl(o['Stärkster Schmerz während']),
-      });
-      const ms = zahl(o['Schmerz nächster Morgen']);
-      const ma = janein(o['Alltagsschmerz nimmt zu (Morgen)']);
-      if (ms !== null || ma !== null) {
-        const mIso = addTage(datumISO, 1);
-        if (!morgen.has(mIso)) {
-          morgen.set(mIso, { datumISO: mIso, bezugDatumISO: datumISO, schmerz: ms, alltagsschmerzZunahme: ma === true, notiz: o['Notiz Morgen'] || '', erfasstISO: `${mIso}T07:00:00` });
-        }
-      }
-    }
-  }
-  if (dateien.einheiten) {
-    for (const o of alsObjekte(dateien.einheiten)) {
-      const id = o['Einheit-ID'];
-      if (!id) continue;
-      if (!einheiten.has(id)) {
-        const datumISO = isoAus(o);
-        einheiten.set(id, { id, datumISO, startISO: `${datumISO}T${o.Uhrzeit || '12:00'}:00`, phase: o.Stufe ? `stufe${o.Stufe}` : 'stufe1', abgeschlossen: true, schmerzVor: null, schmerzNach: null, beschwerdefrei: null, muskelkater: null, notiz: '', timer: null, uebungen: [] });
-      }
-      const st = o.Status;
-      einheiten.get(id).uebungen.push({
-        uebungId: o['Übung-ID'], name: o['Übung'], dosis: '', saetzeGeplant: zahl(o['Sätze geplant']), saetzeErledigt: zahl(o['Sätze erledigt']) || 0,
-        wdh: zahl(o.Wiederholungen), halteS: zahl(o['Haltezeit (s)']), pauseS: zahl(o['Pause (s)']), zusatzlastKg: zahl(o['Zusatzlast (kg)']),
-        schmerzWaehrend: zahl(o['Schmerz während']), erledigt: st === 'erledigt', abgebrochen: st === 'abgebrochen', ausgelassen: st === 'ausgelassen' ? 'import' : null,
+        id, datum, startISO: o['Start (ISO)'] || `${datum}T${o.Uhrzeit || '12:00'}:00`, endeISO: o['Ende (ISO)'] || null,
+        stufe: zahl(o.Stufe) ?? 1, ampel: AMPEL_ZURUECK[o.Ampel] || null, teile: o.Teile ? o.Teile.split('+') : [], okBlock: o['Oberkörper-Block'] || null,
+        planWoche: zahl(o.Planwoche), abgeschlossen: true, schmerzDanach: zahl(o['Schmerz danach']), notiz: o.Notiz || '', timer: null, uebungen: [],
+        bbMinuten: zahl(o['Basketball-Dauer (min)']), bbAnstrengung: zahl(o['Basketball-Anstrengung (0–10)']),
       });
     }
+    einheiten.get(id).uebungen.push({
+      uebungId: o['Übung-ID'], name: o['Übung'], teil: o.Teil, kg: zahl(o['Gewicht (kg)']), zielSaetze: zahl(o['Ziel-Sätze']), zielWdh: zahl(o['Ziel-Wdh.']),
+      zielDauer: zahl(o['Ziel-Dauer (s)']), variante: o.Variante || null, schmerzWaehrend: zahl(o['Schmerz während']), rir: zahl(o.RIR),
+      erledigt: janein(o['Übung erledigt']) === true, saetze: [],
+    });
   }
-  // Fehlt die Übungsdatei, bleibt der stärkste Schmerz trotzdem erhalten.
-  for (const e of einheiten.values()) {
-    if (!e.uebungen.length && e._maxWaehrend !== null && e._maxWaehrend !== undefined) {
-      e.uebungen.push({ uebungId: 'unbekannt', name: '(aus Schmerz-Datei)', dosis: '', saetzeGeplant: null, saetzeErledigt: 0, schmerzWaehrend: e._maxWaehrend, erledigt: false, abgebrochen: false, ausgelassen: null });
-    }
-    delete e._maxWaehrend;
+  for (const o of dateien.saetze ? objekte(dateien.saetze) : []) {
+    const e = einheiten.get(o['Einheit-ID']);
+    const u = e?.uebungen.find((x) => x.uebungId === o['Übung-ID']);
+    if (!u) continue;
+    u.saetze[(zahl(o.Satz) || u.saetze.length + 1) - 1] = { wdh: zahl(o.Wiederholungen), dauer: zahl(o['Dauer (s)']), kg: zahl(o['Gewicht (kg)']), erledigt: janein(o.Erledigt) === true };
   }
-  if (dateien.visap) {
-    for (const o of alsObjekte(dateien.visap)) {
-      const datumISO = isoAus(o);
-      const score = zahl(o.Score);
-      if (!datumISO || score === null) continue;
-      visap.push({ id: o['VISA-P-ID'] || `visap-${datumISO}`, datumISO, score, notiz: o.Notiz || '' });
-    }
+  for (const e of einheiten.values()) for (const u of e.uebungen) u.saetze = Array.from(u.saetze, (s) => s || { erledigt: false });
+  out.einheiten = [...einheiten.values()];
+
+  // Nur bewusste Wechsel übernehmen; Rückstufungen wegen Rot rechnet die App aus den Morgentests neu aus.
+  for (const o of dateien.stufen ? objekte(dateien.stufen) : []) {
+    if (!['aufstieg', 'manuell'].includes(o.Grund)) continue;
+    const datum = isoAus(o);
+    out.stufenwechsel.push({ id: o['Wechsel-ID'] || `w-${datum}-${o['Nach Stufe']}`, datum, nach: zahl(o['Nach Stufe']), grund: o.Grund, zeitISO: o['Zeit (ISO)'] || `${datum}T12:00:00` });
   }
-  return { einheiten: [...einheiten.values()], morgen: [...morgen.values()], visap };
+  for (const o of dateien.rtp ? objekte(dateien.rtp) : []) {
+    const datum = isoAus(o);
+    if (!datum) continue;
+    out.rtpchecks.push({
+      id: o['RTP-ID'] || `rtp-${datum}`, datum, sprungweiteL: zahl(o['Sprungweite links (cm)']), sprungweiteR: zahl(o['Sprungweite rechts (cm)']),
+      sprungSchmerz: zahl(o['Sprung-Schmerz (0–10)']), hop6mL: zahl(o['6-m-Hop links (s)']), hop6mR: zahl(o['6-m-Hop rechts (s)']),
+      hopOhneAnstieg: janein(o['Hop ohne Schmerzanstieg']), teamtraining: janein(o['Teamtraining 2× ohne Gelb']), selbsteinschaetzung: zahl(o['Selbsteinschätzung (%)']),
+    });
+  }
+  for (const o of dateien.visap ? objekte(dateien.visap) : []) {
+    const datum = isoAus(o); const score = zahl(o.Score);
+    if (!datum || score === null) continue;
+    out.visap.push({ id: o['VISA-P-ID'] || `visap-${datum}`, datum, score, notiz: o.Notiz || '' });
+  }
+  for (const o of dateien.einstellungen ? objekte(dateien.einstellungen) : []) {
+    try { out.einstellungen[o['Schlüssel']] = JSON.parse(o['Wert (JSON)']); } catch (_) { /* Zeile überspringen */ }
+  }
+  return out;
 }
 
-/** Nur Datensätze, die es noch nicht gibt (gleiche ID bzw. gleiches Datum beim Morgenwert). */
+/** Nur Datensätze, die es noch nicht gibt (gleiche ID bzw. gleiches Datum beim Morgentest). */
 export function nurNeue(vorhanden, neu) {
   const ids = (l, k) => new Set((l || []).map((x) => x[k]));
-  const e = ids(vorhanden.einheiten, 'id');
-  const m = ids(vorhanden.morgen, 'datumISO');
-  const v = ids(vorhanden.visap, 'id');
+  const filt = (store, k) => neu[store].filter((x) => !ids(vorhanden[store], k).has(x[k]));
   return {
-    einheiten: neu.einheiten.filter((x) => !e.has(x.id)),
-    morgen: neu.morgen.filter((x) => !m.has(x.datumISO)),
-    visap: neu.visap.filter((x) => !v.has(x.id)),
+    morgenchecks: filt('morgenchecks', 'datum'),
+    einheiten: filt('einheiten', 'id'),
+    stufenwechsel: filt('stufenwechsel', 'id'),
+    rtpchecks: filt('rtpchecks', 'id'),
+    visap: filt('visap', 'id'),
+    einstellungen: neu.einstellungen,
   };
 }

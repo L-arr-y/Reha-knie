@@ -1,89 +1,124 @@
-// Tab "Verlauf": Schmerz über Zeit, Trainings pro Woche, VISA-P, Liste der Einheiten.
-import { S, speichern, loeschen } from '../store.js';
-import { abgeschlossene, maxSchmerzWaehrend, faellig } from '../regeln.js';
+// Tab "Verlauf": Morgentest-Kurve mit Stufen-Zeitleiste, Lastkurve (getrennt), Einheiten pro Woche, VISA-P, Einheiten.
+import { S, R, status, speichern, loeschen } from '../store.js';
+import { abgeschlossene, faellig } from '../regeln.js';
 import { esc, deDatum, isoDatum, addTage, diffTage, wochenStart, uid, parseZahl, zahlDE } from '../util.js';
-import { icon, ampelChip, statusChip, openSheet, closeSheet, toast } from '../ui.js';
+import { icon, ampelChip, schmerzAmpel, statusChip, openSheet, closeSheet, toast, kopf } from '../ui.js';
 
-const ui = { bereich: 28, sel: null, tabelle: false, wSel: null };
-const BEREICHE = [{ tage: 28, label: '4 Wochen' }, { tage: 91, label: '3 Monate' }, { tage: 0, label: 'Alles' }];
-const SERIEN = [
-  { key: 'waehrend', label: 'Während (stärkster)', farbe: 'var(--s1)', dash: '' },
-  { key: 'nach', label: 'Direkt danach', farbe: 'var(--s2)', dash: '6 4' },
-  { key: 'morgen', label: 'Nächster Morgen', farbe: 'var(--s3)', dash: '2 3' },
-];
+const ui = { bereich: 28, sel: null, lastSel: null, uebung: null, wSel: null, tabelle: false };
+const BEREICHE = [{ tage: 28, label: '4 Wochen' }, { tage: 56, label: '8 Wochen' }, { tage: 0, label: 'Alles' }];
+const W = 340; const L = 26; const R_ = 52;
 
-/** Tageswerte: höchster Wert je Tag. */
-export function tageswerte(einheiten, morgen) {
-  const tage = new Map();
-  const max = (a, b) => (a === null || a === undefined ? b : b === null || b === undefined ? a : Math.max(a, b));
-  for (const e of abgeschlossene(einheiten)) {
-    const t = tage.get(e.datumISO) || { datum: e.datumISO, waehrend: null, nach: null, morgen: null, anzahl: 0 };
-    t.waehrend = max(t.waehrend, maxSchmerzWaehrend(e));
-    t.nach = max(t.nach, e.schmerzNach);
-    t.anzahl++;
-    tage.set(e.datumISO, t);
-  }
-  for (const m of morgen) {
-    const d = m.bezugDatumISO || addTage(m.datumISO, -1);
-    const t = tage.get(d);
-    if (t) t.morgen = m.schmerz;
-  }
-  return [...tage.values()].sort((a, b) => (a.datum < b.datum ? -1 : 1));
+function zeitraum(daten, h) {
+  const von = ui.bereich ? addTage(h, -ui.bereich + 1) : (daten[0] || h);
+  return { von, span: Math.max(1, diffTage(von, h)) };
 }
 
-function schmerzDiagramm(daten, r) {
-  const h = isoDatum();
-  const von = ui.bereich ? addTage(h, -ui.bereich + 1) : daten[0]?.datum || h;
-  const pts = daten.filter((d) => d.datum >= von);
-  if (!pts.length) return `<div class="cell-block muted">Noch keine Werte in diesem Zeitraum.</div>`;
-  const W = 340; const H = 190; const L = 26; const R = 46; const T = 10; const B = 24;
-  const span = Math.max(1, diffTage(von, h));
-  const x = (iso) => L + (diffTage(von, iso) / span) * (W - L - R);
+// ---------------------------------------------------------------- Morgentest-Kurve
+function morgenDiagramm(st, r, h) {
+  const { von, span } = zeitraum(st.verlauf.map((v) => v.datum), h);
+  const pts = st.verlauf.filter((v) => v.datum >= von);
+  if (!pts.length) return `<div class="cell-block muted">Noch keine Morgentests in diesem Zeitraum.</div>`;
+  const H = 190; const T = 10; const B = 22;
+  const x = (d) => L + (diffTage(von, d) / span) * (W - L - R_);
   const y = (v) => T + (1 - v / 10) * (H - T - B);
-  let s = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Schmerzverlauf: ${pts.length} Trainingstage">`;
-  // Raster + Achse (zurückhaltend)
-  for (const v of [0, 5, 10]) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="ax" text-anchor="end">${v}</text>`;
-  // Schwellen aus regeln.json (grün bis …, gelb bis …) – grau, mit Text
-  for (const [v, t] of [[r.ampel.gruen_max, 'grün'], [r.ampel.gelb_max, 'gelb']]) {
-    s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="schwelle"/><text x="${W - R + 5}" y="${y(v) + 4}" class="ax">≤${v} ${t}</text>`;
+  let s = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Morgentest-Verlauf, ${pts.length} Werte">`;
+  for (const v of [0, 5, 10]) s += `<line x1="${L}" x2="${W - R_}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="ax" text-anchor="end">${v}</text>`;
+  for (const [v, t] of [[r.ampel.gruenMax, 'grün'], [r.ampel.gelbMax, 'gelb']]) {
+    s += `<line x1="${L}" x2="${W - R_}" y1="${y(v)}" y2="${y(v)}" class="schwelle"/><text x="${W - R_ + 5}" y="${y(v) + 4}" class="ax">≤${v} ${t}</text>`;
   }
-  s += `<text x="${L}" y="${H - 6}" class="ax">${deDatum(von).slice(0, 6)}</text><text x="${W - R}" y="${H - 6}" class="ax" text-anchor="end">${deDatum(h).slice(0, 6)}</text>`;
-  for (const se of SERIEN) {
-    const p = pts.filter((d) => d[se.key] !== null && d[se.key] !== undefined);
-    if (p.length > 1) s += `<polyline points="${p.map((d) => `${x(d.datum).toFixed(1)},${y(d[se.key]).toFixed(1)}`).join(' ')}" fill="none" stroke="${se.farbe}" stroke-width="2" stroke-dasharray="${se.dash}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    for (const d of p) s += `<circle cx="${x(d.datum).toFixed(1)}" cy="${y(d[se.key]).toFixed(1)}" r="4" fill="${se.farbe}" stroke="var(--bg2)" stroke-width="2"/>`;
-  }
-  // Auswahl (Fadenkreuz) + Tooltip
-  const sel = pts.find((d) => d.datum === ui.sel);
+  s += `<text x="${L}" y="${H - 6}" class="ax">${deDatum(von).slice(0, 6)}</text><text x="${W - R_}" y="${H - 6}" class="ax" text-anchor="end">${deDatum(h).slice(0, 6)}</text>`;
+  if (pts.length > 1) s += `<polyline points="${pts.map((p) => `${x(p.datum).toFixed(1)},${y(p.wert).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>`;
+  const sel = pts.find((p) => p.datum === ui.sel);
   if (sel) s += `<line x1="${x(sel.datum)}" x2="${x(sel.datum)}" y1="${T}" y2="${H - B}" class="cross"/>`;
-  // Tippfläche je Tag (größer als die Punkte)
-  const breite = Math.max(24, (W - L - R) / Math.max(pts.length, 1));
-  for (const d of pts) s += `<rect x="${(x(d.datum) - breite / 2).toFixed(1)}" y="0" width="${breite.toFixed(1)}" height="${H}" fill="transparent" data-action="chart-sel" data-datum="${d.datum}"/>`;
-  s += `</svg>`;
-  let tip = '';
-  if (sel) {
-    tip = `<div class="tip"><b>${deDatum(sel.datum)}</b>${sel.anzahl > 1 ? ` · ${sel.anzahl} Einheiten` : ''}<br>
-      ${SERIEN.map((se) => `<span class="lg-line" style="--c:${se.farbe}"><svg width="22" height="8"><line x1="1" y1="4" x2="21" y2="4" stroke="${se.farbe}" stroke-width="2" stroke-dasharray="${se.dash}"/></svg>${se.label}: <b>${sel[se.key] ?? '–'}</b></span>`).join('<br>')}</div>`;
+  // Punkte in Ampelfarbe mit Symbol (Status nie nur über Farbe)
+  for (const p of pts) {
+    const cx = x(p.datum).toFixed(1); const cy = y(p.wert).toFixed(1);
+    s += `<circle cx="${cx}" cy="${cy}" r="6" class="pt-${p.ampel}" stroke="var(--bg2)" stroke-width="2"/>`;
+    if (pts.length <= 31) s += `<text x="${cx}" y="${(+cy + 3).toFixed(1)}" class="pt-sym ${p.ampel}" text-anchor="middle">${r.ampel.stufen[p.ampel].symbol}</text>`;
   }
-  return s + tip;
+  const breite = Math.max(22, (W - L - R_) / Math.max(pts.length, 1));
+  for (const p of pts) s += `<rect x="${(x(p.datum) - breite / 2).toFixed(1)}" y="0" width="${breite.toFixed(1)}" height="${H}" fill="transparent" data-action="chart-sel" data-datum="${p.datum}"/>`;
+  s += `</svg>` + stufenLeiste(st, von, span, h);
+  if (sel) s += `<div class="tip"><b>${deDatum(sel.datum)}</b> · Morgentest <b>${sel.wert}/10</b> · ${ampelChip(sel.ampel, r)} · Stufe ${sel.stufe}</div>`;
+  return s;
 }
 
-function legende() {
-  return `<div class="legend">${SERIEN.map((se) => `<span class="lg-line"><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="${se.farbe}" stroke-width="2" stroke-dasharray="${se.dash}"/></svg>${se.label}</span>`).join('')}</div>`;
+/** Stufen-Zeitleiste unter der Kurve (gleiche Zeitachse). */
+function stufenLeiste(st, von, span, h) {
+  const x = (d) => L + (Math.max(0, diffTage(von, d)) / span) * (W - L - R_);
+  const segs = [];
+  const v = st.stufenVerlauf;
+  for (let i = 0; i < v.length; i++) {
+    const start = v[i].datum < von ? von : v[i].datum;
+    const ende = i + 1 < v.length ? v[i + 1].datum : addTage(h, 1);
+    if (ende <= von) continue;
+    segs.push({ nach: v[i].nach, x0: x(start), x1: Math.min(x(ende > h ? h : ende), W - R_) });
+  }
+  let s = `<svg viewBox="0 0 ${W} 26" class="chart" role="img" aria-label="Stufen im Zeitraum">`;
+  s += `<text x="${L - 6}" y="17" class="ax" text-anchor="end">Stufe</text>`;
+  segs.forEach((g) => {
+    const wd = Math.max(2, g.x1 - g.x0 - 2);
+    s += `<rect x="${g.x0.toFixed(1)}" y="4" width="${wd.toFixed(1)}" height="18" rx="4" class="stufe-seg s${Math.min(g.nach, 5)}"/>`;
+    if (wd > 18) s += `<text x="${(g.x0 + wd / 2).toFixed(1)}" y="17" class="seg-lbl" text-anchor="middle">${g.nach <= 4 ? g.nach : 'E'}</text>`;
+  });
+  return s + `</svg>`;
 }
 
-function wochenDiagramm() {
-  const h = isoDatum();
+// ---------------------------------------------------------------- Lastkurve
+function lastUebungen() {
+  const ids = new Map();
+  for (const e of abgeschlossene(S.einheiten)) for (const u of e.uebungen) {
+    if (u.saetze?.some((x) => x.erledigt && x.kg != null)) ids.set(u.uebungId, u.name);
+  }
+  return [...ids.entries()];
+}
+
+function lastDiagramm(h) {
+  const liste = lastUebungen();
+  if (!liste.length) return `<div class="cell-block muted">Noch keine Sätze mit Gewicht geloggt.</div>`;
+  if (!ui.uebung || !liste.some(([id]) => id === ui.uebung)) ui.uebung = (liste.find(([id]) => S.ueb[id]?.hsr) || liste[0])[0];
+  const punkte = [];
+  for (const e of abgeschlossene(S.einheiten)) {
+    const u = e.uebungen.find((x) => x.uebungId === ui.uebung);
+    const kgs = (u?.saetze || []).filter((x) => x.erledigt && x.kg != null).map((x) => Number(x.kg));
+    if (kgs.length) {
+      const wdh = u.saetze.filter((x) => x.erledigt).map((x) => x.wdh).filter((x) => x != null);
+      punkte.push({ datum: e.datum, kg: Math.max(...kgs), saetze: u.saetze.filter((x) => x.erledigt).length, wdh: wdh.length ? Math.min(...wdh) : null });
+    }
+  }
+  const { von, span } = zeitraum(punkte.map((p) => p.datum), h);
+  const pts = punkte.filter((p) => p.datum >= von);
+  let html = `<select class="mb8" data-input="last-uebung" aria-label="Übung für die Lastkurve" style="width:100%;min-height:44px;border-radius:10px;border:0;background:var(--fill);padding:0 12px;font-size:17px">
+    ${liste.map(([id, name]) => `<option value="${esc(id)}" ${id === ui.uebung ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select>`;
+  if (!pts.length) return html + `<div class="cell-block muted">Keine Werte in diesem Zeitraum.</div>`;
+  const H = 170; const T = 12; const B = 22;
+  const max = Math.max(...pts.map((p) => p.kg)); const min = Math.min(...pts.map((p) => p.kg));
+  const lo = Math.max(0, Math.floor((min - (max - min) * 0.2 - 1) / 5) * 5); const hi = Math.ceil((max + (max - min) * 0.1 + 1) / 5) * 5;
+  const x = (d) => L + (diffTage(von, d) / span) * (W - L - R_);
+  const y = (v) => T + (1 - (v - lo) / Math.max(1, hi - lo)) * (H - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Lastverlauf in kg">`;
+  for (const v of [lo, hi]) s += `<line x1="${L}" x2="${W - R_}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="ax" text-anchor="end">${v}</text>`;
+  s += `<text x="${W - R_ + 5}" y="${y(hi) + 4}" class="ax">kg</text>`;
+  if (pts.length > 1) s += `<polyline points="${pts.map((p) => `${x(p.datum).toFixed(1)},${y(p.kg).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round"/>`;
+  for (const p of pts) s += `<circle cx="${x(p.datum).toFixed(1)}" cy="${y(p.kg).toFixed(1)}" r="5" fill="var(--s2)" stroke="var(--bg2)" stroke-width="2"/>`;
+  const letzte = pts[pts.length - 1];
+  s += `<text x="${x(letzte.datum).toFixed(1)}" y="${(y(letzte.kg) - 10).toFixed(1)}" class="ax val" text-anchor="middle">${zahlDE(letzte.kg)}</text>`;
+  const breite = Math.max(22, (W - L - R_) / pts.length);
+  for (const p of pts) s += `<rect x="${(x(p.datum) - breite / 2).toFixed(1)}" y="0" width="${breite.toFixed(1)}" height="${H}" fill="transparent" data-action="last-sel" data-datum="${p.datum}"/>`;
+  s += `</svg>`;
+  const sel = pts.find((p) => p.datum === ui.lastSel);
+  if (sel) s += `<div class="tip"><b>${deDatum(sel.datum)}</b> · ${zahlDE(sel.kg)} kg · ${sel.saetze} Sätze${sel.wdh != null ? ` · mind. ${sel.wdh} Wdh.` : ''}</div>`;
+  return html + s;
+}
+
+// ---------------------------------------------------------------- Einheiten pro Woche
+function wochenDiagramm(h, wertVon = () => 1, { selKey = 'wSel', action = 'woche-sel', label = (n) => `${n} ${n === 1 ? 'Einheit' : 'Einheiten'}`, minMax = 4 } = {}) {
   const ws = wochenStart(h);
   const wochen = [];
   for (let i = 7; i >= 0; i--) wochen.push({ start: addTage(ws, -7 * i), n: 0 });
-  for (const e of abgeschlossene(S.einheiten)) {
-    const w = wochen.find((x) => x.start === wochenStart(e.datumISO));
-    if (w) w.n++;
-  }
-  const max = Math.max(4, ...wochen.map((w) => w.n));
-  const W = 340; const H = 150; const L = 22; const B = 22; const T = 16;
-  const bw = (W - L) / wochen.length;
+  for (const e of abgeschlossene(S.einheiten)) { const w = wochen.find((x) => x.start === wochenStart(e.datum)); if (w) w.n += wertVon(e); }
+  const max = Math.max(minMax, ...wochen.map((w) => w.n));
+  const H = 150; const B = 22; const T = 16; const bw = (W - L) / wochen.length;
   const y = (v) => T + (1 - v / max) * (H - T - B);
   let s = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Einheiten pro Woche, letzte 8 Wochen">`;
   for (const v of [0, max]) s += `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="ax" text-anchor="end">${v}</text>`;
@@ -91,108 +126,41 @@ function wochenDiagramm() {
     const x0 = L + i * bw + 3; const wd = bw - 6;
     if (w.n > 0) {
       const top = y(w.n); const bot = y(0); const rr = Math.min(4, (bot - top) / 2);
-      s += `<path d="M${x0},${bot} V${top + rr} Q${x0},${top} ${x0 + rr},${top} H${x0 + wd - rr} Q${x0 + wd},${top} ${x0 + wd},${top + rr} V${bot} Z" fill="var(--s1)" opacity="${ui.wSel && ui.wSel !== w.start ? 0.45 : 1}"/>`;
+      s += `<path d="M${x0},${bot} V${top + rr} Q${x0},${top} ${x0 + rr},${top} H${x0 + wd - rr} Q${x0 + wd},${top} ${x0 + wd},${top + rr} V${bot} Z" fill="var(--s1)" opacity="${ui[selKey] && ui[selKey] !== w.start ? 0.45 : 1}"/>`;
     }
-    if (i === wochen.length - 1 || ui.wSel === w.start) s += `<text x="${x0 + wd / 2}" y="${y(w.n) - 4}" class="ax val" text-anchor="middle">${w.n}</text>`;
+    if (i === wochen.length - 1 || ui[selKey] === w.start) s += `<text x="${x0 + wd / 2}" y="${y(w.n) - 4}" class="ax val" text-anchor="middle">${w.n}</text>`;
     if (i % 2 === 1) s += `<text x="${x0 + wd / 2}" y="${H - 6}" class="ax" text-anchor="middle">${deDatum(w.start).slice(0, 6)}</text>`;
-    s += `<rect x="${L + i * bw}" y="0" width="${bw}" height="${H}" fill="transparent" data-action="woche-sel" data-start="${w.start}"/>`;
+    s += `<rect x="${L + i * bw}" y="0" width="${bw}" height="${H}" fill="transparent" data-action="${action}" data-start="${w.start}"/>`;
   });
   s += `</svg>`;
-  const sel = wochen.find((w) => w.start === ui.wSel);
-  return s + (sel ? `<div class="tip">Woche ab ${deDatum(sel.start)}: <b>${sel.n} ${sel.n === 1 ? 'Einheit' : 'Einheiten'}</b></div>` : '');
+  const sel = wochen.find((w) => w.start === ui[selKey]);
+  return s + (sel ? `<div class="tip">Woche ab ${deDatum(sel.start)}: <b>${label(sel.n)}</b></div>` : '');
 }
+
+// ---------------------------------------------------------------- VISA-P
+const visapEntwurf = { id: null, datum: '', score: '', notiz: '' };
 
 function visapAbschnitt(r) {
   const v = r.visap;
-  const liste = [...S.visap].sort((a, b) => (a.datumISO < b.datumISO ? -1 : 1));
+  const liste = [...S.visap].sort((a, b) => (a.datum < b.datum ? -1 : 1));
   const erster = liste[0]; const letzter = liste[liste.length - 1];
-  let html = `<div class="section"><div class="section-header">VISA-P (0–${v.max} Punkte)</div><div class="list">`;
+  let html = `<div class="section"><div class="section-header">VISA-P (0–${v.max} Punkte) ${statusChip(v.status)}</div><div class="list">`;
   if (letzter) {
     const diff = letzter.score - erster.score;
     html += `<div class="cell-block"><div class="hero mono">${zahlDE(letzter.score)}</div>
-      <div class="footnote">zuletzt am ${deDatum(letzter.datumISO)}${liste.length > 1 ? ` · ${diff >= 0 ? '+' : ''}${zahlDE(diff)} seit ${deDatum(erster.datumISO)}` : ''}</div>
-      ${liste.length > 1 ? `<div class="footnote mt8">${diff >= v.klinisch_relevant_plus ? `✓ Verbesserung um mindestens ${v.klinisch_relevant_plus} Punkte – laut Quellen klinisch bedeutsam.` : `Klinisch bedeutsam laut Quellen: +${v.klinisch_relevant_plus} Punkte.`}</div>` : ''}</div>`;
+      <div class="footnote">zuletzt am ${deDatum(letzter.datum)}${liste.length > 1 ? ` · ${diff >= 0 ? '+' : ''}${zahlDE(diff)} seit ${deDatum(erster.datum)}` : ''}</div></div>`;
     for (const x of [...liste].reverse()) {
-      html += `<button class="cell" data-action="visap-bearbeiten" data-id="${esc(x.id)}"><div class="grow">${deDatum(x.datumISO)}${x.notiz ? `<div class="footnote">${esc(x.notiz)}</div>` : ''}</div><div class="value mono">${zahlDE(x.score)}</div>${icon.chev}</button>`;
+      html += `<button class="cell" data-action="visap-bearbeiten" data-id="${esc(x.id)}"><div class="grow">${deDatum(x.datum)}${x.notiz ? `<div class="footnote">${esc(x.notiz)}</div>` : ''}</div><div class="value mono">${zahlDE(x.score)}</div>${icon.chev}</button>`;
     }
-  } else {
-    html += `<div class="cell-block muted">Noch kein Score eingetragen. Trage einen Ausgangswert ein.</div>`;
-  }
+  } else html += `<div class="cell-block muted">Noch kein Score eingetragen.</div>`;
   html += `<div class="cell-block"><button class="btn block" data-action="visap-neu">VISA-P eintragen</button></div></div>
-    <div class="section-footer">${esc(v.text)} Erinnerung alle ${v.erinnerung_tage} Tage. Die Fragen des Fragebogens stehen nicht in deinen Quellen – Score z. B. mit dem Physio erheben und hier eintragen.</div></div>`;
+    <div class="section-footer">${esc(v.text)} Erinnerung alle ${v.erinnerung_tage} Tage. Die Fragen des Fragebogens stehen nicht im Leitfaden – Score z. B. mit dem Physio erheben.</div></div>`;
   return html;
 }
 
-export function render() {
-  const r = S.daten.regeln;
-  const daten = tageswerte(S.einheiten, S.morgen);
-  const liste = abgeschlossene(S.einheiten).reverse();
-  let html = `<h1 class="large-title">Verlauf</h1>`;
-  html += `<button class="btn filled lg mb8" data-action="export">${icon.share}Daten exportieren (CSV)</button>
-    <div class="footnote center mb8">${S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}` : 'Noch nie exportiert.'}</div>`;
-
-  html += `<div class="section mt16"><div class="section-header">Schmerz über Zeit (0–10)</div><div class="card viz">
-    <div class="seg mb8">${BEREICHE.map((b) => `<button data-action="bereich" data-tage="${b.tage}" aria-pressed="${ui.bereich === b.tage}">${b.label}</button>`).join('')}</div>
-    ${legende()}
-    ${ui.tabelle ? tabelle(daten) : schmerzDiagramm(daten, r)}
-    <button class="link-btn" data-action="tabelle">${ui.tabelle ? 'Als Diagramm anzeigen' : 'Als Tabelle anzeigen'}</button>
-  </div><div class="section-footer">Tippe auf einen Tag für die Werte. Je Tag zählt der höchste Wert. Folgetag-Schmerz wird nur angezeigt, nicht bewertet (${esc(r.folgetag_schmerz.status)}).</div></div>`;
-
-  html += `<div class="section"><div class="section-header">Einheiten pro Woche</div><div class="card viz">${wochenDiagramm()}</div>
-    <div class="section-footer">Letzte 8 Wochen, Montag bis Sonntag.</div></div>`;
-
-  html += visapAbschnitt(r);
-
-  html += `<div class="section"><div class="section-header">Alle Einheiten</div><div class="list">`;
-  if (!liste.length) html += `<div class="cell-block muted">Noch keine Einheiten gespeichert.</div>`;
-  for (const e of liste) {
-    const m = S.morgen.find((x) => x.bezugDatumISO === e.datumISO);
-    html += `<button class="cell" data-action="einheit-details" data-id="${esc(e.id)}"><div class="grow">
-      <div class="headline">${deDatum(e.datumISO)} · Stufe ${esc(String(e.phase).replace('stufe', ''))}</div>
-      <div class="footnote">Vorher ${e.schmerzVor ?? '–'} · Während ${maxSchmerzWaehrend(e) ?? '–'} · Danach ${e.schmerzNach ?? '–'} · Morgen ${m ? m.schmerz : '–'}</div>
-    </div>${icon.chev}</button>`;
-  }
-  html += `</div></div>`;
-  return html;
-}
-
-function tabelle(daten) {
-  if (!daten.length) return `<div class="cell-block muted">Noch keine Werte.</div>`;
-  return `<table class="tbl"><thead><tr><th>Datum</th><th>Während</th><th>Danach</th><th>Morgen</th></tr></thead><tbody>
-    ${[...daten].reverse().map((d) => `<tr><td>${deDatum(d.datum)}</td><td>${d.waehrend ?? '–'}</td><td>${d.nach ?? '–'}</td><td>${d.morgen ?? '–'}</td></tr>`).join('')}</tbody></table>`;
-}
-
-// ---------- Sheets ----------
-function einheitSheet(id) {
-  const e = S.einheiten.find((x) => x.id === id);
-  if (!e) return '<div class="muted">Einheit nicht gefunden.</div>';
-  const r = S.daten.regeln;
-  const m = S.morgen.find((x) => x.bezugDatumISO === e.datumISO);
-  const zeit = new Date(e.startISO).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  let html = `<div class="title2">${deDatum(e.datumISO)}, ${zeit} Uhr</div><div class="footnote mt8">Stufe ${esc(String(e.phase).replace('stufe', ''))}</div>
-    <div class="section mt16"><div class="section-header">Schmerz</div><div class="list">
-      <div class="cell"><div class="grow">Vorher</div><div class="value">${e.schmerzVor ?? '–'}</div></div>
-      <div class="cell"><div class="grow">Danach</div><div class="value">${e.schmerzNach ?? '–'}</div></div>
-      <div class="cell"><div class="grow">Nächster Morgen</div><div class="value">${m ? m.schmerz : '–'}${m?.alltagsschmerzZunahme ? ' · Alltagsschmerz ↑' : ''}</div></div>
-      <div class="cell"><div class="grow">Beschwerdefrei</div><div class="value">${e.beschwerdefrei === true ? 'ja' : e.beschwerdefrei === false ? 'nein' : '–'}</div></div>
-    </div></div>
-    <div class="section"><div class="section-header">Übungen</div><div class="list">`;
-  for (const u of e.uebungen) {
-    const st = u.abgebrochen ? 'abgebrochen' : u.ausgelassen && u.ausgelassen !== 'manuell_ein' ? 'ausgelassen' : u.erledigt ? 'erledigt' : `${u.saetzeErledigt || 0} Sätze`;
-    html += `<div class="cell-block"><div class="headline">${esc(u.name || u.uebungId)}</div>
-      <div class="footnote">${esc(st)}${u.saetzeGeplant ? ` · ${u.saetzeErledigt}/${u.saetzeGeplant} Sätze` : ''}${u.zusatzlastKg ? ` · +${zahlDE(u.zusatzlastKg)} kg` : ''}</div>
-      ${u.schmerzWaehrend !== null && u.schmerzWaehrend !== undefined ? `<div class="mt8">${ampelChip(u.schmerzWaehrend, r)}</div>` : ''}</div>`;
-  }
-  html += `</div></div>${e.notiz ? `<div class="section"><div class="section-header">Notiz</div><div class="list"><div class="cell-block">${esc(e.notiz)}</div></div></div>` : ''}
-    <button class="btn danger block" data-action="einheit-loeschen" data-id="${esc(e.id)}">Einheit löschen</button>`;
-  return html;
-}
-
-const visapEntwurf = { id: null, datum: '', score: '', notiz: '' };
 function visapSheet() {
   const v = S.daten.regeln.visap;
-  return `<div class="title2">VISA-P eintragen</div>
-    <div class="footnote mt8">Score von ${v.min} bis ${v.max} (${v.max} = beschwerdefrei). ${statusChip(v.status)}</div>
+  return `<div class="title2">VISA-P eintragen</div><div class="footnote mt8">Score von ${v.min} bis ${v.max} (${v.max} = beschwerdefrei).</div>
     <div class="section mt16"><div class="list">
       <div class="cell-block"><div class="headline">Datum</div><input type="date" class="mt8" data-input="visap-datum" value="${esc(visapEntwurf.datum)}"></div>
       <div class="cell-block"><div class="headline">Score</div><input inputmode="decimal" class="mt8" data-input="visap-score" value="${esc(visapEntwurf.score)}" placeholder="z. B. 62"></div>
@@ -203,27 +171,92 @@ function visapSheet() {
 }
 
 export function visapFaellig() {
-  const letzter = [...S.visap].sort((a, b) => (a.datumISO < b.datumISO ? -1 : 1)).pop();
-  return faellig(letzter?.datumISO || null, isoDatum(), S.daten.regeln.visap.erinnerung_tage);
+  const letzter = [...S.visap].sort((a, b) => (a.datum < b.datum ? -1 : 1)).pop();
+  return faellig(letzter?.datum || null, isoDatum(), S.daten.regeln.visap.erinnerung_tage);
 }
 
 export function oeffneVisap(id = null) {
   const x = id ? S.visap.find((v) => v.id === id) : null;
-  Object.assign(visapEntwurf, x ? { id: x.id, datum: x.datumISO, score: zahlDE(x.score), notiz: x.notiz || '' } : { id: null, datum: isoDatum(), score: '', notiz: '' });
+  Object.assign(visapEntwurf, x ? { id: x.id, datum: x.datum, score: zahlDE(x.score), notiz: x.notiz || '' } : { id: null, datum: isoDatum(), score: '', notiz: '' });
   openSheet('VISA-P', visapSheet);
 }
 
+// ---------------------------------------------------------------- Einheit-Details
+function einheitSheet(id) {
+  const e = S.einheiten.find((x) => x.id === id);
+  if (!e) return '<div class="muted">Einheit nicht gefunden.</div>';
+  const r = R();
+  const zeit = new Date(e.startISO).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  let html = `<div class="title2">${deDatum(e.datum)}, ${zeit} Uhr</div><div class="footnote mt8">Stufe ${e.stufe} · ${ampelChip(e.ampel, r)} · Schmerz danach ${e.schmerzDanach ?? '–'}/10</div>
+    <div class="section mt16"><div class="list">`;
+  for (const u of e.uebungen) {
+    const fertig = (u.saetze || []).filter((s) => s.erledigt);
+    const satzText = fertig.map((s) => `${s.wdh ?? s.dauer ?? '–'}${s.dauer != null && s.wdh == null ? ' s' : ''}${s.kg != null ? ` × ${zahlDE(s.kg)} kg` : ''}`).join(' · ');
+    const a = schmerzAmpel(u.schmerzWaehrend, r);
+    html += `<div class="cell-block"><div class="headline">${esc(u.name)}</div>
+      <div class="footnote">${u.erledigt ? '✓ erledigt' : fertig.length ? `${fertig.length}/${u.saetze.length} Sätze` : 'nicht gemacht'}${u.variante ? ` · ${esc(u.variante)}` : ''}${u.rir != null ? ` · RIR ${u.rir}` : ''}</div>
+      ${satzText ? `<div class="footnote mono">${esc(satzText)}</div>` : ''}${a ? `<div class="mt8">${ampelChip(a, r, `${u.schmerzWaehrend}/10`)}</div>` : ''}</div>`;
+  }
+  html += `</div></div>${e.notiz ? `<div class="section"><div class="section-header">Notiz</div><div class="list"><div class="cell-block">${esc(e.notiz)}</div></div></div>` : ''}
+    <button class="btn danger block" data-action="einheit-loeschen" data-id="${esc(e.id)}">Einheit löschen</button>`;
+  return html;
+}
+
+// ---------------------------------------------------------------- Ansicht
+export function render() {
+  const r = R();
+  const h = isoDatum();
+  const st = status(h);
+  let html = kopf('Verlauf');
+  html += `<button class="btn filled lg mb8" data-action="export">${icon.share}Daten exportieren (CSV)</button>
+    <div class="footnote center mb8">${S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}` : 'Noch nie exportiert.'}</div>
+    <div class="seg mt16 mb8">${BEREICHE.map((b) => `<button data-action="bereich" data-tage="${b.tage}" aria-pressed="${ui.bereich === b.tage}">${b.label}</button>`).join('')}</div>`;
+
+  html += `<div class="section"><div class="section-header">Morgentest und Stufe</div><div class="card viz">
+    ${ui.tabelle ? morgenTabelle(st, r) : morgenDiagramm(st, r, h)}
+    <button class="link-btn" data-action="tabelle">${ui.tabelle ? 'Als Diagramm anzeigen' : 'Als Tabelle anzeigen'}</button></div>
+    <div class="section-footer">Tippe auf einen Tag für Details. Punkte zeigen die Ampel (✓ ! ✕), die Leiste darunter die Stufe.</div></div>`;
+
+  html += `<div class="section"><div class="section-header">Last (höchstes Gewicht pro Einheit)</div><div class="card viz">${lastDiagramm(h)}</div>
+    <div class="section-footer">Bewusst getrennt von der Schmerzkurve: zwei Diagramme statt zwei Skalen in einem.</div></div>`;
+
+  html += `<div class="section"><div class="section-header">Einheiten pro Woche</div><div class="card viz">${wochenDiagramm(h)}</div></div>`;
+  if (S.einheiten.some((e) => e.bbMinuten != null && e.bbAnstrengung != null)) {
+    html += `<div class="section"><div class="section-header">Basketball-Belastung pro Woche</div><div class="card viz">${wochenDiagramm(h,
+      (e) => (e.bbMinuten != null && e.bbAnstrengung != null ? e.bbMinuten * e.bbAnstrengung : 0),
+      { selKey: 'bbSel', action: 'bb-sel', label: (n) => `Belastung ${n}`, minMax: 100 })}</div>
+      <div class="section-footer">${esc(r.basketball.text)}</div></div>`;
+  }
+  html += visapAbschnitt(r);
+
+  const liste = abgeschlossene(S.einheiten).reverse();
+  html += `<div class="section"><div class="section-header">Alle Einheiten</div><div class="list">`;
+  if (!liste.length) html += `<div class="cell-block muted">Noch keine Einheiten.</div>`;
+  for (const e of liste) {
+    const n = e.uebungen.filter((u) => u.erledigt || u.saetze?.some((s) => s.erledigt)).length;
+    html += `<button class="cell" data-action="einheit-details" data-id="${esc(e.id)}"><div class="grow"><div class="headline">${deDatum(e.datum)} · Stufe ${e.stufe}</div>
+      <div class="footnote">${(e.teile || []).join(' + ')} · ${n} Übungen · Schmerz danach ${e.schmerzDanach ?? '–'}</div></div>${icon.chev}</button>`;
+  }
+  return html + `</div></div>`;
+}
+
+function morgenTabelle(st, r) {
+  if (!st.verlauf.length) return `<div class="cell-block muted">Noch keine Werte.</div>`;
+  return `<table class="tbl"><thead><tr><th>Datum</th><th>Test</th><th>Ampel</th><th>Stufe</th></tr></thead><tbody>
+    ${[...st.verlauf].reverse().map((v) => `<tr><td>${deDatum(v.datum)}</td><td>${v.wert}</td><td>${r.ampel.stufen[v.ampel].symbol} ${r.ampel.stufen[v.ampel].titel}</td><td>${v.stufe}</td></tr>`).join('')}</tbody></table>`;
+}
+
 export const actions = {
-  bereich: (el) => { ui.bereich = Number(el.dataset.tage); ui.sel = null; },
+  bereich: (el) => { ui.bereich = Number(el.dataset.tage); ui.sel = null; ui.lastSel = null; },
   tabelle: () => { ui.tabelle = !ui.tabelle; },
   'chart-sel': (el) => { ui.sel = ui.sel === el.dataset.datum ? null : el.dataset.datum; },
+  'last-sel': (el) => { ui.lastSel = ui.lastSel === el.dataset.datum ? null : el.dataset.datum; },
   'woche-sel': (el) => { ui.wSel = ui.wSel === el.dataset.start ? null : el.dataset.start; },
+  'bb-sel': (el) => { ui.bbSel = ui.bbSel === el.dataset.start ? null : el.dataset.start; },
   'einheit-details': (el) => openSheet('Einheit', () => einheitSheet(el.dataset.id)),
   'einheit-loeschen': async (el) => {
     if (!confirm('Diese Einheit endgültig löschen? Das kann nicht rückgängig gemacht werden.')) return;
-    const id = el.dataset.id;
-    await loeschen('einheiten', id);
-    for (const ev of S.ereignisse.filter((x) => x.einheitId === id)) await loeschen('ereignisse', ev.id);
+    await loeschen('einheiten', el.dataset.id);
     closeSheet();
     toast('Einheit gelöscht.');
   },
@@ -234,7 +267,7 @@ export const actions = {
     const score = parseZahl(visapEntwurf.score);
     if (score === null || score < v.min || score > v.max) { toast(`Bitte einen Score von ${v.min} bis ${v.max} eingeben.`); return; }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(visapEntwurf.datum)) { toast('Bitte ein Datum wählen.'); return; }
-    await speichern('visap', { id: visapEntwurf.id || uid(), datumISO: visapEntwurf.datum, score, notiz: visapEntwurf.notiz.trim() });
+    await speichern('visap', { id: visapEntwurf.id || uid(), datum: visapEntwurf.datum, score, notiz: visapEntwurf.notiz.trim() });
     closeSheet();
     toast('VISA-P gespeichert.');
   },
@@ -246,6 +279,7 @@ export const actions = {
 };
 
 export const inputs = {
+  'last-uebung': (el) => { ui.uebung = el.value; ui.lastSel = null; return true; },
   'visap-datum': (el) => { visapEntwurf.datum = el.value; return false; },
   'visap-score': (el) => { visapEntwurf.score = el.value; return false; },
   'visap-notiz': (el) => { visapEntwurf.notiz = el.value; return false; },

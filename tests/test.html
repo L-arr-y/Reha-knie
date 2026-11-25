@@ -17,12 +17,10 @@
   <ul id="out"></ul>
   <script type="module">
     import { lauf } from './runner.js';
-    const regeln = await fetch('../data/regeln.json').then((r) => r.json());
-    const phasen = (await fetch('../data/phasen.json').then((r) => r.json())).phasen;
-    const uebungen = (await fetch('../data/uebungen.json').then((r) => r.json())).uebungen;
-    const ctx = { regeln, phasen, uebungen };
-    const mods = [await import('./regeln.test.js')];
-    try { mods.push(await import('./csv.test.js')); } catch (_) { /* CSV-Tests folgen in Runde 3 */ }
+    const lade = (f) => fetch(`../data/${f}.json`).then((r) => r.json());
+    const [regeln, stufen, plan, uebungen] = await Promise.all([lade('regeln'), lade('stufen'), lade('plan'), lade('uebungen')]);
+    const ctx = { regeln, stufen: stufen.stufen, plan, uebungen: uebungen.uebungen };
+    const mods = [await import('./regeln.test.js'), await import('./csv.test.js')];
     const { ok, fail, zeilen } = await lauf(mods, ctx);
     document.getElementById('out').innerHTML = zeilen.join('');
     const s = document.getElementById('summary');

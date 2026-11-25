@@ -1,155 +1,208 @@
 {
-  "_info": "Schwellenwerte und Regeln. Zahlen hier ändern, die App übernimmt sie. Die App gibt Empfehlungen und Warnungen, stellt aber keine Diagnosen. status: gesichert | OFFEN | ergänzend.",
-  "version": 1,
-  "skala": { "min": 0, "max": 10, "text": "Schmerz 0–10 (VAS/NRS)", "status": "gesichert", "quelle": "Quellenextraktion §4.1" },
-
+  "_info": "Grenzwerte und Regeln. Laut Leitfaden sind das Konventionen aus Studien, keine Naturgesetze – hier änderbar. Die App gibt Empfehlungen, stellt keine Diagnosen.",
+  "version": 3,
+  "morgentest": {
+    "titel": "Morgentest",
+    "anleitung": "1 einbeinige Kniebeuge auf dem betroffenen Bein (ggf. auf 25°-Schrägbrett). Schmerz 0–10 eintragen.",
+    "dauer": "10 Sekunden",
+    "status": "gesichert",
+    "quelle": "Leitfaden: Belastungssteuerung, täglicher Test"
+  },
   "ampel": {
-    "gruen_max": 3,
-    "gelb_max": 5,
+    "gruenMax": 3,
+    "gelbMax": 5,
+    "anstiegGelbMax": 2,
+    "gelbInFolgeRot": 2,
     "stufen": {
-      "gruen": { "symbol": "✓", "titel": "Grün", "text": "Im Rahmen – weiter wie geplant." },
-      "gelb": { "symbol": "!", "titel": "Gelb", "text": "Erlaubt – aufmerksam beobachten." },
-      "rot": { "symbol": "✕", "titel": "Rot", "text": "Übung abbrechen. Nächste Einheit Belastung reduzieren." }
+      "gruen": {
+        "symbol": "✓",
+        "titel": "Grün",
+        "text": "Plan wie geplant.",
+        "konsequenz": "Training wie vorgeschlagen. Zählt als grüner Tag für die Stufe."
+      },
+      "gelb": {
+        "symbol": "!",
+        "titel": "Gelb",
+        "text": "Stufe halten, Sprünge/Sprints/Basketball reduzieren.",
+        "konsequenz": "Stufe halten. Sprünge, Sprints und Basketball 40 % weniger (abgerundet). HSR: gleiche Sätze und Last, aber keine Steigerung. Isometrie bleibt. Der Grün-Zähler pausiert."
+      },
+      "rot": {
+        "symbol": "✕",
+        "titel": "Rot",
+        "text": "Eine Stufe zurück, 2 Tage nur Isometrie + Oberkörper.",
+        "konsequenz": "Eine Stufe zurück (einmal pro Rot-Episode, mindestens Stufe 1), Grün-Zähler auf 0, mindestens 2 Tage nur Isometrie und Oberkörper – so lange es rot bleibt."
+      }
     },
+    "regelText": "Verglichen wird mit dem Median der letzten 3 Morgentests. Grün: Test ≤ 3 und höchstens +1 (Messrauschen). Gelb: Test 4–5 oder +2. Rot: Test über 5, mehr als +2 oder 2× Gelb in Folge.",
     "status": "gesichert",
-    "quelle": "Quellen: bis 4–5/10 während der Übung zulässig, > 5/10 Überbelastung (Quellenextraktion §3.3, §4.2). Grenze grün/gelb bei 3 = Projektvorgabe."
+    "quelle": "Leitfaden: Schmerzampel und Logikregel 2 (JUMPER-Protokoll, Breda 2021; Pain-Monitoring-Model, Sprague/Silbernagel 2021); Median-Vergleich und +1-Toleranz: Ergänzung Reha-Modul: Auslegungen der App-Logik",
+    "vergleichAnzahl": 3,
+    "anstiegToleranz": 1
   },
-
-  "reduktion": {
-    "schwelle_ueber": 5,
-    "aktion_text": "Schmerz über 5/10: In der nächsten Einheit die Belastung reduzieren.",
-    "optionen_text": "Laut Quellen entweder um 15 Wiederholungen pro Tag reduzieren oder eine Woche mit reduzierter Intensität trainieren. Mit Physio abstimmen.",
-    "pruefung_nach_tagen": 7,
-    "pruefung_frage": "Seit dem Schmerz über 5/10 ist eine Woche vergangen. Hat sich der Schmerz gebessert?",
-    "keine_besserung_text": "Keine Besserung nach einer Woche: Übungsprogramm pausieren und Arzt kontaktieren.",
+  "stufenwechsel": {
+    "minTageProStufe": 7,
+    "minGruenTage": 7,
+    "nurBeiGruen": true,
+    "text": "Nächste Stufe erst nach mindestens 7 Tagen in der Stufe, 7 grünen Tagen in Folge und erfülltem Stufenkriterium – bewusst per Knopfdruck, nicht automatisch.",
     "status": "gesichert",
-    "quelle": "Quellenextraktion §3.2a/b, §5.1; Projektvorgabe 'nächste Einheit reduzieren, nach einer Woche ohne Besserung pausieren'"
+    "quelle": "Leitfaden: Phasenmodell Sehne; Logikregel 3"
   },
-
-  "alltagsschmerz": {
-    "frage": "Nehmen die Schmerzen im Alltag zu (z. B. Treppensteigen, Gehen, Aufstehen)?",
-    "ja_text": "Zunehmende Alltagsschmerzen: Übungsprogramm pausieren und Arzt kontaktieren.",
+  "gelb": {
+    "reduktionProzent": 40,
+    "runden": "ab",
+    "hsr": "keine Steigerung",
+    "text": "Gelb: Sprünge, Sprints und Basketball 40 % weniger Sätze bzw. Minuten (abgerundet, mindestens 1 Satz: 4 → 2, 6 → 3). HSR: gleiche Sätze und Last, aber keine Steigerung. Isometrie bleibt unverändert.",
     "status": "gesichert",
-    "quelle": "Quellenextraktion §3.2b, §4.2, §5.1"
+    "quelle": "Leitfaden: Logikregel 4 (40 %); Ergänzung Reha-Modul: Auslegungen der App-Logik"
   },
-
-  "phasenwechsel": [
-    {
-      "id": "stufe1_zu_stufe2",
-      "von": "stufe1",
-      "nach": "stufe2",
-      "schmerz_max": 3,
-      "bestaetigung": "Isometrisches Halten ist mühelos möglich.",
-      "text": "Wechsel zur Exzentrik erst, wenn das Halten mühelos geht und der Schmerz höchstens 2–3/10 beträgt. Mit Physio/Arzt abstimmen.",
-      "status": "gesichert",
-      "quelle": "Quellenextraktion §1 Modell 2 Phase 1 [7], §3.1c, §3.3"
-    },
-    {
-      "id": "stufe2_zu_stufe3",
-      "von": "stufe2",
-      "nach": "stufe3",
-      "schmerz_max": null,
-      "bestaetigung": "Schwere isotonische Übungen sind schmerzfrei bzw. gut tolerierbar.",
-      "text": "Konkreter Schwellenwert OFFEN. Wechsel nur nach Rücksprache mit Physio/Arzt.",
-      "status": "OFFEN",
-      "quelle": "Quellenextraktion §1 Modell 1 Stufe 2, §3.1c"
-    },
-    {
-      "id": "stufe3_zu_stufe4",
-      "von": "stufe3",
-      "nach": "stufe4",
-      "schmerz_max": null,
-      "bestaetigung": "Plyometrische und laufspezifische Übungen sind beschwerdefrei.",
-      "text": "Konkreter Schwellenwert OFFEN. Rückkehr ins normale Training frühestens nach 4 Wochen. Mit Physio/Arzt abstimmen.",
-      "mindestdauer_wochen": 4,
-      "status": "OFFEN",
-      "quelle": "Quellenextraktion §1 Modell 1 Stufe 3/4, §3.1c"
-    }
-  ],
-
-  "progression_exzentrik": {
-    "uebung": "exz_decline_squat",
-    "stufen": [
-      { "saetze": 1, "wiederholungen": 15 },
-      { "saetze": 2, "wiederholungen": 15 },
-      { "saetze": 3, "wiederholungen": 15 }
+  "rot": {
+    "sperreTage": 2,
+    "physioNachTagen": 7,
+    "sperreText": "Nur Isometrie und Oberkörper.",
+    "physioText": "Seit über einer Woche keine grüne Ampel nach Rot: Bitte Physio/Arzt kontaktieren.",
+    "status": "gesichert",
+    "quelle": "Leitfaden: Logikregel 5; Schmerzampel; Rot-Episode: Ergänzung Reha-Modul: Auslegungen der App-Logik",
+    "episodeText": "Eine Stufe zurück pro Rot-Episode. Eine neue Episode beginnt erst nach mindestens einem grünen Tag."
+  },
+  "hsr": {
+    "saetze": 4,
+    "wdhLeiter": [
+      15,
+      12,
+      10,
+      8,
+      6
     ],
-    "kriterium": "beschwerdefrei",
-    "steigerung_text": "Einheit war beschwerdefrei – nächste Stufe möglich (mit Physio abstimmen).",
+    "schmerzMax": 3,
+    "lastPlusMinProzent": 5,
+    "lastPlusMaxProzent": 10,
+    "rundenKg": 0.5,
+    "bewegungsumfang": {
+      "15": "10–60°",
+      "12": "10–60°",
+      "10": "bis 70–80°",
+      "8": "bis 90°",
+      "6": "bis 90°"
+    },
+    "text": "3 Übungen (ab Woche 3; Woche 1–2: 2), je 4 Sätze, 3 s runter/3 s hoch, 2–3 Min. Pause. Alle Sätze mit Ziel-Wiederholungen bei Schmerz ≤ 3 → nächste Einheit weniger Wiederholungen (15 → 12 → 10 → 8 → 6) und Last ca. +5–10 %. Beinstrecker oder Split Squat ersetzen eine der drei, nicht zusätzlich.",
     "status": "gesichert",
-    "quelle": "Quellenextraktion §1 Modell 2 Phase 2, §3.1a"
+    "quelle": "Leitfaden: Logikregel 7; Bewegungsumfang je Stufe aus dem 8-Wochen-Plan abgeleitet; Übungsauswahl und Pause: Ergänzung Reha-Modul (Kongsgaard 2009)",
+    "standard": [
+      "hsr_beinpresse",
+      "hsr_hackenschmidt",
+      "hsr_kniebeuge"
+    ],
+    "wechsel": [
+      "hsr_beinstrecker",
+      "hsr_split_squat"
+    ]
   },
-
-  "zusatzlast": {
-    "ab_saetze": 3,
-    "ab_wiederholungen": 15,
-    "kriterium": "beschwerdefrei",
-    "text": "3×15 beschwerdefrei geschafft – Zusatzlast (z. B. Rucksack, Langhantel) schrittweise möglich. Mit Physio abstimmen.",
-    "schritt_kg": null,
-    "schritt_status": "OFFEN",
+  "kriterien": {
+    "s1": {
+      "minSaetze": 5,
+      "minHaltezeit_s": 45,
+      "minKg": 0.1
+    },
+    "s2": {
+      "uebung": "test_beinpresse_einbeinig",
+      "saetze": 4,
+      "wdh": 8,
+      "faktorKoerpergewicht": 1.5
+    },
+    "s3": {
+      "schmerzMax": 3
+    },
     "status": "gesichert",
-    "quelle": "Quellenextraktion §3.1b, §3.3"
+    "quelle": "Leitfaden: Phasenmodell Sehne (Spalte 'Weiter, wenn …'); Logikregel 8"
   },
-
-  "muskelkater": {
-    "frage": "Hast du Muskelkater oder spürbare Ermüdung in den Beinen?",
-    "ja_text": "Sprungtraining heute auslassen und einen zusätzlichen Ruhetag einlegen.",
-    "betrifft": "plyometrie",
+  "oberkoerper": {
+    "alleTage": 3,
+    "text": "Oberkörper ca. 2× pro Woche, ohne Kniebelastung in jeder Stufe frei.",
     "status": "gesichert",
-    "quelle": "Quellenextraktion §3.2b, §3.3, §6.1 [18]"
+    "quelle": "Leitfaden: 8-Wochen-Plan (2×/Woche); Abstand 3 Tage abgeleitet"
   },
-
-  "plyometrie": {
-    "max_pro_woche": 2,
-    "text": "Plyometrie höchstens 2× pro Woche.",
-    "status": "ergänzend",
-    "quelle": "Projektvorgabe; Sprungkrafttraining Basketball – Fit-Connect (schwache Quellenlage)"
-  },
-
-  "folgetag_schmerz": {
-    "text": "Erlaubtes Schmerzverhalten am Folgetag: OFFEN. Wird nur erfasst und im Verlauf gezeigt, nicht bewertet.",
-    "erlaubt_max": null,
-    "status": "OFFEN",
-    "quelle": "Quellenextraktion §4.3 ('24-Stunden-Regel' nicht in den Quellen)"
-  },
-
-  "nach_training": {
-    "text": "Muskelkater und ein vorübergehend stärkeres Spüren der Patellasehne direkt nach den Übungen sind unbedenklich.",
+  "rtp": {
+    "lsiZiel": 90,
+    "slsMax": 3,
+    "morgenStabilTage": 7,
+    "selbsteinschaetzungMin": 90,
+    "teamtrainingOhneGelb": 2,
+    "checkliste": [
+      {
+        "id": "sls",
+        "text": "Einbeinige Kniebeuge (Schrägbrett): Schmerz ≤ 3/10",
+        "automatisch": "sls"
+      },
+      {
+        "id": "morgen",
+        "text": "Morgenschmerz 7 Tage in Folge nicht gestiegen",
+        "automatisch": "morgen_stabil"
+      },
+      {
+        "id": "sprungweite",
+        "text": "Einbeiniger Sprung auf Weite: betroffenes Bein mind. ca. 90 % der Gegenseite, Schmerz ≤ 3",
+        "automatisch": "lsi_sprung"
+      },
+      {
+        "id": "hop6m",
+        "text": "6-m-Hop-Test (einbeinig auf Zeit) ohne Schmerzanstieg",
+        "automatisch": "hop_eingetragen"
+      },
+      {
+        "id": "teamtraining",
+        "text": "Volles Teamtraining inkl. Kontakt 2× ohne Ampel Gelb am Folgetag"
+      },
+      {
+        "id": "selbst",
+        "text": "Selbsteinschätzung des Knies ≥ 90 % (0–100 %)",
+        "automatisch": "selbst"
+      }
+    ],
+    "hinweis": "Die 90-%-Seitengleichheit ist eine klinische Faustregel, nicht speziell für die Patellasehne validiert. Die Ampel bleibt das Hauptsignal.",
     "status": "gesichert",
-    "quelle": "Quellenextraktion §4.2"
+    "quelle": "Leitfaden: Return-to-Play und Erhaltung; J Athl Train 2021; JUMPER-Sekundäranalyse"
   },
-
-  "wochenstruktur": {
-    "text": "Trainings- und Ruhetage: OFFEN – in der App frei einstellbar.",
-    "standard_trainingstage": [1, 2, 3, 4, 5, 6, 0],
-    "status": "OFFEN",
-    "quelle": "Quellenextraktion (keine Angabe)"
-  },
-
   "visap": {
     "min": 0,
     "max": 100,
-    "klinisch_relevant_plus": 13,
     "erinnerung_tage": 28,
-    "text": "VISA-P: max. 100 Punkte (beschwerdefrei). Eine Verbesserung um mindestens 13 Punkte gilt als klinisch bedeutsam.",
-    "status": "gesichert",
-    "quelle": "Quellenextraktion §4.4, §6.9; Erinnerungsintervall 4 Wochen = Projektvorgabe"
+    "text": "VISA-P: max. 100 Punkte. Im Leitfaden: PTLE nach 24 Wochen +28 Punkte (Breda 2021).",
+    "status": "ergänzend",
+    "quelle": "Ursprünglicher Projektauftrag; Leitfaden nennt VISA-P nur bei Studienergebnissen"
   },
-
   "backup": {
     "erinnerung_tage": 14,
     "text": "Zeit für eine Sicherung: Daten als CSV exportieren.",
     "status": "gesichert",
     "quelle": "Projektvorgabe"
   },
-
   "hinweise": {
     "disclaimer": "Diese App ersetzt keine ärztliche Diagnose oder Therapie. Training mit Arzt/Physio abstimmen.",
     "keine_diagnose": "Die App gibt Empfehlungen und Warnungen, stellt aber keine Diagnosen.",
     "video_disclaimer": "Videos sind nicht geprüft. Ausführung mit Physio/Arzt abstimmen.",
     "offline_video": "Nur mit Internetverbindung",
-    "schmerzausloeser": "Schmerzauslösende Tätigkeiten im Alltag (z. B. langes Sitzen mit angewinkelten Beinen, Hocken, tiefes Knien) vermeiden.",
+    "geduld": "Nach 5 Jahren fühlten sich 76 % der Athleten erholt; Restbeschwerden sind häufig – deshalb gehört ein Erhaltungsprogramm dazu.",
     "status": "gesichert",
-    "quelle": "Projektvorgabe; Quellenextraktion §3.2b, §6.8"
+    "quelle": "Projektvorgabe; Leitfaden: Was die Forschung aktuell sagt"
+  },
+  "prognose": {
+    "mindestTage": {
+      "1": 7,
+      "2": 21,
+      "3": 14,
+      "4": 14
+    },
+    "plusProGelbTag": 1,
+    "plusProRotEpisode": 7,
+    "realistischPlusTage": 14,
+    "text": "Schätzung aus den Mindestdauern des Plans (S1 1 Woche, S2 3, S3 2, S4 2) abzüglich der Tage in der aktuellen Stufe, plus 1 Tag je gelbem Tag und 7 Tage je Rot-Episode in der aktuellen Stufe. Realistisch = frühestens + 2 Wochen.",
+    "status": "ergänzend",
+    "quelle": "Ergänzung Reha-Modul: Auslegungen der App-Logik"
+  },
+  "basketball": {
+    "lastSteigerungMaxProzent": 20,
+    "text": "Belastung = Dauer (Min.) × Anstrengung (0–10). Pro Woche um höchstens 20 % steigern – Faustregel, kein Studienwert.",
+    "status": "ergänzend",
+    "quelle": "Ergänzung Reha-Modul"
   }
 }

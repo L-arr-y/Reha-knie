@@ -2,7 +2,7 @@
 // Strategie "erst Speicher, im Hintergrund aktualisieren": Die App startet immer sofort aus dem Speicher;
 // gibt es online eine neuere Datei (z. B. eine geänderte JSON), wird sie beim nächsten Start benutzt.
 // Bei Code-Änderungen VERSION erhöhen, dann wird alles neu geladen.
-const VERSION = 'reha-v1';
+const VERSION = 'reha-v4';
 const DATEIEN = [
   './',
   './index.html',
@@ -18,12 +18,13 @@ const DATEIEN = [
   './js/csv.js',
   './js/daten.js',
   './js/views/heute.js',
+  './js/views/uebersicht.js',
   './js/views/uebungen.js',
   './js/views/verlauf.js',
-  './js/views/warnzeichen.js',
-  './js/views/einstellungen.js',
-  './data/phasen.json',
+  './js/views/mehr.js',
+  './data/stufen.json',
   './data/uebungen.json',
+  './data/plan.json',
   './data/regeln.json',
   './data/warnzeichen.json',
   './icons/icon-180.png',

@@ -1,0 +1,61 @@
+{
+  "_info": "Stufen der Sehnen-Reha (JUMPER-Protokoll). Wechsel nur bei grüner Ampel, mindestens 7 Tage pro Stufe (Werte in regeln.json). rhythmus: welche Sehnen-Einheit wann fällig ist – alleTage = frühestens nach so vielen Tagen wieder; proWoche = höchstens so oft in 7 Tagen, minAbstandTage dazwischen. Die erste fällige Einheit in der Liste wird vorgeschlagen, sonst die mit fuellt=true.",
+  "version": 2,
+  "stufen": [
+    {
+      "nr": 1, "name": "Isometrie", "titel": "Stufe 1 – Isometrie",
+      "ziel": "Schmerz dämpfen, Quadrizeps aktivieren.",
+      "rhythmus": [ { "typ": "iso", "alleTage": 1, "fuellt": true } ],
+      "rhythmusText": "Isometrie täglich",
+      "hsrTest": { "abTagInStufe": 3, "text": "Laut Idealplan ab Tag 3–4: erste HSR-Einheit 4 × 15 testen (optional, nur bei Grün)." },
+      "kriterium": {
+        "id": "s1", "text": "45-s-Halten stabil mit Zusatzlast",
+        "automatisch": "iso_mit_last", "bestaetigung": "Ich halte 5 × 45 s stabil mit Zusatzlast."
+      },
+      "status": "gesichert", "quelle": "Leitfaden: Phasenmodell Sehne; Breda 2021"
+    },
+    {
+      "nr": 2, "name": "Isotonisch (HSR)", "titel": "Stufe 2 – Heavy Slow Resistance",
+      "ziel": "Kraft und Sehnensteifigkeit aufbauen.",
+      "rhythmus": [ { "typ": "hsr", "alleTage": 2 }, { "typ": "iso", "alleTage": 1, "fuellt": true } ],
+      "rhythmusText": "HSR jeden 2. Tag (ca. 3×/Woche), Isometrie an den anderen Tagen",
+      "kriterium": {
+        "id": "s2", "text": "Einbeinige Beinpresse 4 × 8 mit ca. 150 % Körpergewicht, seitengleich",
+        "automatisch": "beinpresse_150", "bestaetigung": "Beide Seiten schaffen das gleich gut (seitengleich)."
+      },
+      "status": "gesichert", "quelle": "Leitfaden: Phasenmodell Sehne; Kongsgaard 2009; Kriterium nach Malliaras/Cook (klinische Empfehlung)"
+    },
+    {
+      "nr": 3, "name": "Energiespeicher", "titel": "Stufe 3 – Sprung- und Energiespeicher-Übungen",
+      "ziel": "Sehne an schnelle Belastung gewöhnen.",
+      "rhythmus": [ { "typ": "sprung", "alleTage": 3 }, { "typ": "hsr", "proWoche": 2, "minAbstandTage": 2 }, { "typ": "iso", "alleTage": 1, "fuellt": true } ],
+      "rhythmusText": "Sprünge jeden 3. Tag (48–72 h Abstand), HSR 2×/Woche, Isometrie an den anderen Tagen",
+      "kriterium": {
+        "id": "s3", "text": "Alle Sprungübungen einbeinig bei Schmerz ≤ 3",
+        "automatisch": "sprung_einbeinig", "bestaetigung": "Alle Sprungübungen gehen einbeinig."
+      },
+      "abgeleitet": ["HSR 2×/Woche aus dem 8-Wochen-Plan, Woche 5"],
+      "status": "gesichert", "quelle": "Leitfaden: Phasenmodell Sehne; Logikregel 6; 8-Wochen-Plan"
+    },
+    {
+      "nr": 4, "name": "Basketballspezifisch", "titel": "Stufe 4 – Basketballspezifisch",
+      "ziel": "Spielbelastung vorbereiten.",
+      "rhythmus": [ { "typ": "sport", "alleTage": 2 }, { "typ": "hsr", "proWoche": 2, "minAbstandTage": 2 }, { "typ": "iso", "alleTage": 1, "fuellt": true } ],
+      "rhythmusText": "Sport alle 2–3 Tage, HSR 2×/Woche, Isometrie dazwischen",
+      "kriterium": {
+        "id": "s4", "text": "Alle Stufe-4-Inhalte bei Schmerz ≤ 3 und Return-to-Play-Check erfüllt → Wettkampf",
+        "automatisch": "rtp", "bestaetigung": "Alle Stufe-4-Inhalte laufen bei Schmerz ≤ 3."
+      },
+      "abgeleitet": ["HSR 2×/Woche aus dem 8-Wochen-Plan, Woche 7"],
+      "status": "gesichert", "quelle": "Leitfaden: Phasenmodell Sehne; Return-to-Play"
+    },
+    {
+      "nr": 5, "name": "Erhaltung", "titel": "Erhaltung nach der Rückkehr",
+      "ziel": "Rückfällen vorbeugen.",
+      "rhythmus": [ { "typ": "hsr", "proWoche": 2, "minAbstandTage": 2 }, { "typ": "iso", "proWoche": 2, "minAbstandTage": 2 }, { "typ": "sport", "alleTage": 1, "fuellt": true } ],
+      "rhythmusText": "Stufe 1 und 2 je 2×/Woche weiterführen; Isometrie gern vor Training und Spiel. Spielminuten und Sprungvolumen über 2–3 Wochen steigern.",
+      "kriterium": null,
+      "status": "gesichert", "quelle": "Leitfaden: Return-to-Play und Erhaltung"
+    }
+  ]
+}

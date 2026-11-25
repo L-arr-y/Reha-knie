@@ -1,37 +1,38 @@
-# Welche OFFEN-Felder muss ich noch klären?
+# Welche Punkte sind noch offen?
 
-Diese Punkte fehlen in deinen Quellen (`docs/quellen_extraktion.md`). Die App erfindet dafür keine Werte.
-Am besten mit deinem Physio/Arzt durchgehen und dann eintragen: in der App unter **Einstellungen → Eigene Werte** oder direkt in `data/*.json`.
+Grundlagen der App:
+- [`docs/reha_leitfaden.md`](docs/reha_leitfaden.md): der Leitfaden
+- [`docs/ergaenzungen.md`](docs/ergaenzungen.md): deine Ergänzung vom 23.11.2026 mit Dosierungen und Logik-Auslegungen
 
-## Übungen (Dosierung)
+Die meisten Lücken sind damit geschlossen. Werte aus der Ergänzung stehen in der App als **„ergänzend“** (übliche Trainingswerte ohne Studienbasis). Die HSR-Werte stammen aus Kongsgaard 2009. Alles ist in den JSON-Dateien und teils direkt in der App änderbar.
 
-| Übung | Was fehlt | Wo eintragen |
-|---|---|---|
-| **Heavy Slow Resistance (HSR)** – Stufe 2 | konkrete Übung (Beinpresse? Kniebeuge?), Sätze, Wiederholungen, Last, Tempo, Pause, Einheiten pro Woche | Einstellungen → Eigene Werte → HSR · `uebungen.json` → `hsr` |
-| Exzentrische Kniebeuge | Pause zwischen den Sätzen | Eigene Werte · `exz_decline_squat.dosierung.pause_s` |
-| Exzentrische Kniebeuge | Höhe und Schrittweite der Zusatzlast (nach 3×15 beschwerdefrei) | Zusatzlast-Feld beim Training · `regeln.json` → `zusatzlast.schritt_kg` |
-| Depth Jumps | Satzzahl | Eigene Werte · `depth_jumps.dosierung.saetze` |
-| Dehnen Oberschenkel | Sätze, Haltezeit, Häufigkeit | Eigene Werte · `dehnen_oberschenkel` |
-| Faszienrolle | Dauer pro Einheit | Eigene Werte · `faszienrolle.dosierung.dauer_min` |
+## Noch OFFEN (fehlt in beiden Dokumenten)
 
-## Regeln und Ablauf
+| Was | Wo eintragen |
+|---|---|
+| Pause bei der **Kontaktkraft** (Partner-Bumps, Ball-Reißen, Offset-Carries, Anti-Rotation, Abschluss gegen Pad) | Übungen → Übung → OFFEN-Feld |
+| **Farmer's Carry**: Strecke oder Zeit pro Satz | Übungen → Farmer's Carry |
+| **Erhaltung ab Woche 7**: welche konkrete Druck-, Zug-, Rotations- und Rumpfübung, Wiederholungen, Pause | Übungen → „Erhaltung: …“ |
+| **Sprünge**: wie genau die Steigerung von 3 × 10 beidbeinig auf 6 × 10 einbeinig verläuft (die App startet mit 3 × 10, mehr Sätze über „+ Satz“) | `data/uebungen.json` oder sag es mir |
+| **Basketball in Woche 1–4** (Wurftechnik, Freiwürfe, Ballhandling, Shooting-Volumen …): Dauer bzw. Anzahl Würfe. Die Ergänzung nennt Minuten erst ab Woche 5. | `data/plan.json` (`bbMinuten`) oder sag es mir |
 
-- [ ] **Erlaubter Schmerz am Folgetag** (nächster Morgen): Die App erfasst den Wert nur und zeigt ihn im Verlauf, bewertet ihn aber nicht. → `regeln.json` → `folgetag_schmerz`
-- [ ] **Wochenstruktur:** Welche Tage Training, welche Ruhe? Standard sind 7 Trainingstage, bis du etwas einstellst. → Einstellungen → Wochenplan
-- [ ] **Wechsel Stufe 2 → 3:** konkreter Schmerz-Schwellenwert. → `regeln.json` → `phasenwechsel[stufe2_zu_stufe3].schmerz_max`
-- [ ] **Wechsel Stufe 3 → 4:** konkreter Schmerz-Schwellenwert. → `phasenwechsel[stufe3_zu_stufe4].schmerz_max`
-- [ ] **Dauer der Plyometrie-Phase** (Stufe 3) und der HSR-Phase (Stufe 2): nicht in den Quellen.
-- [ ] **Trainingshäufigkeit in Stufe 4:** nicht in den Quellen.
-- [ ] **Was heißt „Besserung“** nach einer Woche mit reduzierter Belastung? Die App fragt dich nach 7 Tagen. Gibt es ein Zahlenkriterium vom Physio?
-- [ ] **Reduktion bei Schmerz über 5:** Die Quellen widersprechen sich (−15 Wiederholungen pro Tag *oder* eine Woche mit reduzierter Intensität). Die App zeigt beides. Welche Variante soll gelten?
-- [ ] **VISA-P-Fragebogen:** Die Fragen selbst stehen nicht in den Quellen. Die App speichert nur den Score. Wer erhebt ihn (Physio)?
+## Umgesetzt nach deinen Antworten
+- **HSR Woche 1–2:** Beinpresse + Hackenschmidt, ab Woche 3 zusätzlich Kniebeuge.
+- **Morgentest-Anstieg +3 oder mehr** gegenüber dem Median der letzten 3 Tests: **Rot** (+1 bleibt Grün, +2 ist Gelb).
 
-## Zur Bestätigung (Projektvorgaben und schwache Quellenlage)
+## Meine Auslegungen (bitte kurz bestätigen)
+- [ ] **Median der letzten 3 Tests:** gezählt werden die letzten 3 *vorhandenen* Morgentests, nicht unbedingt 3 Kalendertage.
+- [ ] **HSR-Tausch:** Wählst du im Training „Übung tauschen“ (z. B. Kniebeuge → Beinstrecker), bleibt der Tausch für die nächsten Einheiten gespeichert, bis du zurücktauschst. Split Squat ist erst ab Woche 3 wählbar.
+- [ ] **Unterkörper** wird standardmäßig an **Isometrie-Tagen** vorgeschlagen, damit HSR- und Sprungtage nicht überladen werden. Ein Block (z. B. Hamstrings 2×/Woche) verschwindet aus dem Vorschlag, sobald er in den letzten 7 Tagen oft genug gemacht wurde.
+- [ ] **„Sprints und Basketball auf die Sprungtage“:** gilt ab Stufe 3. In Stufe 4 zählen die Sporttage als Sprungtage. In Stufe 1–2 gibt es keine Einschränkung.
+- [ ] **Gelb bei Basketball:** Die Minuten-Vorgabe der Woche sinkt um 40 % (abgerundet), z. B. Woche 5: 12–18 statt 20–30 Min.
+- [ ] **Gelb bei HSR:** gleiche Wiederholungen und Last wie zuletzt. Eine Einheit an einem Gelb-Tag löst auch beim nächsten Mal keine Steigerung aus.
+- [ ] **Sprints in Woche 8:** wie Woche 7 (8 × 80–90 % mit Cuts). Die Ergänzung sagt „W7+“.
+- [ ] **Prognose:** Gelbe Tage und Rot-Episoden zählen nur in der **aktuellen** Stufe. Sonst würden vergangene Tage doppelt zählen, weil sie schon in den „Tagen in der Stufe“ stecken.
+- [ ] **Basketball-Belastung +20 %:** Verglichen wird die Woche (Mo–So) mit der Vorwoche. Ohne Vorwochenwert gibt es noch keine Obergrenze. Dauer und Anstrengung fragt die App nach dem Training ab, die Eingabe ist freiwillig.
 
-Diese Werte stehen in der App, sind aber Projektentscheidungen oder nur „ergänzend“ belegt. Bitte kurz mit dem Physio bestätigen:
-
-- [ ] **Ampel grün bis 3:** In den Quellen sind bis 4–5/10 während der Übung erlaubt. Die Grenze grün/gelb bei 3 ist eine Projektvorgabe.
-- [ ] **Isometrie 1–2× täglich:** Die Quellen nennen 2× bzw. 2–3× täglich.
-- [ ] **Plyometrie-Werte** (Box Jumps 3–5 × 6–8, Depth Jumps 3–5 Wdh., ca. 2 Min. Pause, höchstens 2× pro Woche): stammen aus einer Basketball-Fitnessquelle („ergänzend“).
-- [ ] **Notrufnummern** 116 117 und 112 auf der Warnzeichen-Seite: organisatorisch ergänzt, nicht aus den Quellen.
-- [ ] **Erinnerungsintervalle:** VISA-P alle 28 Tage, CSV-Sicherung alle 14 Tage (Projektvorgaben).
+## Nicht aus Leitfaden oder Ergänzung (ergänzend)
+- [ ] **Warnzeichen** (Fieber, Rötung/Überwärmung, Ruhe-/Nachtschmerz, Funktionsverlust, Verdacht auf Riss): aus deinem ursprünglichen Auftrag.
+- [ ] **Notrufnummern** 116 117 und 112: organisatorisch ergänzt.
+- [ ] **VISA-P** (Erinnerung alle 28 Tage): aus dem ursprünglichen Auftrag. Die App speichert nur den Score.
+- [ ] **Erinnerung an CSV-Sicherung** alle 14 Tage: Projektvorgabe.

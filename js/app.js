@@ -3,27 +3,26 @@ import { S, laden, setKV } from './store.js';
 import { icon, openSheet, closeSheet, renderSheet, sheetOffen, toast } from './ui.js';
 import { esc } from './util.js';
 import * as heute from './views/heute.js';
+import * as uebersicht from './views/uebersicht.js';
 import * as uebungen from './views/uebungen.js';
 import * as verlauf from './views/verlauf.js';
-import * as warnzeichen from './views/warnzeichen.js';
-import * as einstellungen from './views/einstellungen.js';
-import { oeffneHomeAnleitung } from './views/einstellungen.js';
+import * as mehr from './views/mehr.js';
 import * as daten from './daten.js';
 
 const TABS = [
   { id: 'heute', label: 'Heute', view: heute },
+  { id: 'uebersicht', label: 'Übersicht', view: uebersicht },
   { id: 'uebungen', label: 'Übungen', view: uebungen },
   { id: 'verlauf', label: 'Verlauf', view: verlauf },
-  { id: 'warnzeichen', label: 'Warnzeichen', view: warnzeichen, warn: true },
-  { id: 'einstellungen', label: 'Einstellungen', view: einstellungen },
+  { id: 'mehr', label: 'Mehr', view: mehr },
 ];
 
 const actions = {
-  ...daten.actions, ...verlauf.actions, ...warnzeichen.actions, ...uebungen.actions, ...einstellungen.actions, ...heute.actions,
+  ...daten.actions, ...verlauf.actions, ...uebungen.actions, ...mehr.actions, ...uebersicht.actions, ...heute.actions,
   'willkommen-ok': async () => { await setKV('ersterStartGesehen', true); closeSheet(); },
-  'willkommen-home': () => oeffneHomeAnleitung(),
+  'willkommen-home': () => mehr.oeffneHomeAnleitung(),
 };
-const inputs = { ...heute.inputs, ...einstellungen.inputs, ...verlauf.inputs, ...daten.inputs };
+const inputs = { ...heute.inputs, ...uebungen.inputs, ...mehr.inputs, ...verlauf.inputs, ...daten.inputs };
 
 let tab = 'heute';
 try { tab = localStorage.getItem('tab') || 'heute'; } catch (_) { /* privat */ }
@@ -38,7 +37,7 @@ function render() {
 
 function tabbar() {
   document.getElementById('tabbar').innerHTML = TABS.map((t) =>
-    `<button class="tab ${t.warn ? 'warn' : ''}" data-action="tab" data-tab="${t.id}" aria-label="${esc(t.label)}">${icon[t.id]}<span>${esc(t.label)}</span></button>`).join('');
+    `<button class="tab" data-action="tab" data-tab="${t.id}" aria-label="${esc(t.label)}">${icon[t.id]}<span>${esc(t.label)}</span></button>`).join('');
 }
 
 function wechsleTab(id) {
@@ -56,10 +55,10 @@ document.addEventListener('click', async (ev) => {
   const name = el.dataset.action;
   if (name === 'yt') {
     if (!navigator.onLine) { ev.preventDefault(); toast(S.daten.regeln.hinweise.offline_video); }
-    return; // Link öffnet sich normal in neuem Tab bzw. in der YouTube-App
+    return;
   }
   if (name === 'download') { actions.download(); return; } // Link lädt die Datei selbst
-  if (name === 'sheet-close') { closeSheet(); return; }
+  if (name === 'sheet-close') { closeSheet(); render(); return; }
   if (name === 'tab') { wechsleTab(el.dataset.tab); return; }
   const fn = actions[name];
   if (!fn) return;
@@ -78,10 +77,9 @@ async function onInput(ev) {
   if (!el) return;
   const fn = inputs[el.dataset.input];
   if (!fn) return;
-  const neu = await fn(el, ev);
-  if (neu) render();
+  if (await fn(el, ev)) render();
 }
-const perChange = (t) => t.type === 'checkbox' || t.type === 'file';
+const perChange = (t) => t.type === 'checkbox' || t.type === 'file' || t.type === 'date';
 document.addEventListener('input', (ev) => { if (!perChange(ev.target)) onInput(ev); });
 document.addEventListener('change', (ev) => { if (perChange(ev.target)) onInput(ev); });
 
@@ -99,8 +97,9 @@ function willkommen() {
     <div class="banner rot mt16"><div class="sym" aria-hidden="true">!</div><div class="body"><div class="headline">${esc(r.hinweise.disclaimer)}</div>
       <div class="footnote" style="color:inherit">${esc(r.hinweise.keine_diagnose)}</div></div></div>
     <div class="section"><div class="list">
-      <div class="cell-block"><div class="headline">Deine Daten bleiben auf dem iPhone</div><div class="footnote">Kein Konto, kein Upload, kein Tracking. Sicherung per CSV-Export.</div></div>
-      <div class="cell-block"><div class="headline">Zum Home-Bildschirm hinzufügen</div><div class="footnote">${S.standalone ? '✓ Erledigt – die App läuft bereits als Home-Bildschirm-App.' : 'Bitte jetzt machen: Dann läuft die App offline und Safari löscht deine Daten nicht so leicht.'}</div></div>
+      <div class="cell-block"><div class="headline">Jeden Morgen: 10-Sekunden-Test</div><div class="footnote">${esc(r.morgentest.anleitung)} Daraus ergibt sich die Ampel und der Trainingsvorschlag.</div></div>
+      <div class="cell-block"><div class="headline">Deine Daten bleiben auf dem iPhone</div><div class="footnote">Kein Konto, kein Upload, kein Tracking.</div></div>
+      <div class="cell-block"><div class="headline">Zum Home-Bildschirm hinzufügen</div><div class="footnote">${S.standalone ? '✓ Erledigt.' : 'Bitte gleich machen: Dann läuft die App offline und Safari löscht deine Daten nicht so leicht.'}</div></div>
     </div></div>
     ${S.standalone ? '' : `<button class="btn block mb8" data-action="willkommen-home">So geht's</button>`}
     <button class="btn filled lg" data-action="willkommen-ok">Verstanden</button>`);

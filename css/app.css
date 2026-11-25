@@ -473,3 +473,44 @@ ul.plain li { margin: 3px 0; }
 .tbl td { padding: 8px 4px; border-bottom: 0.5px solid var(--sep); }
 .file-pick { display: block; }
 .file-pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+
+/* ---------- Runde 2 (neues Modell) ---------- */
+.kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.warn-btn { flex: none; width: 44px; height: 44px; margin-top: 12px; border: 0; border-radius: 22px; background: var(--red-tint); color: var(--red); display: grid; place-items: center; }
+.warn-btn svg { width: 24px; height: 24px; }
+.ampel-gross { display: flex; gap: 14px; align-items: center; }
+.ampel-gross .kreis { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; font-weight: 800; color: #fff; }
+.ampel-gross .kreis.gruen { background: var(--green); } .ampel-gross .kreis.gelb { background: var(--yellow); color: #000; } .ampel-gross .kreis.rot { background: var(--red); }
+.teil { display: flex; gap: 12px; align-items: flex-start; }
+.teil .grow { flex: 1; min-width: 0; }
+.teil-check { flex: none; width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--label3); background: none; display: grid; place-items: center; color: transparent; }
+.teil-check[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+.teil-check svg { width: 22px; height: 22px; }
+.gesperrt { opacity: 0.45; }
+.lock { font-size: 12px; font-weight: 600; color: var(--label2); background: var(--fill); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
+.satz-reihe { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; margin: 12px 0 4px; }
+.satz-btn { min-height: 56px; border: 0; border-radius: 12px; background: var(--fill); font-weight: 700; font-size: 15px; line-height: 1.15; padding: 4px; }
+.satz-btn small { display: block; font-weight: 500; font-size: 12px; color: var(--label2); }
+.satz-btn.on { background: var(--green); color: #fff; }
+.satz-btn.on small { color: rgba(255,255,255,0.9); }
+.kg-zeile { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.kg-zeile label { font-weight: 600; flex: 1; }
+.kg-zeile input { width: 110px; text-align: right; font-size: 20px; font-weight: 600; }
+.kg-zeile .einh { color: var(--label2); width: 24px; }
+.hinweis-box { background: var(--fill); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-top: 10px; }
+.fortschritt { height: 10px; border-radius: 5px; background: var(--fill2); overflow: hidden; margin-top: 8px; }
+.fortschritt span { display: block; height: 100%; background: var(--green); border-radius: 5px; }
+.tage-leiste { display: grid; grid-template-columns: repeat(14, 1fr); gap: 3px; margin-top: 10px; }
+.tag-box { aspect-ratio: 1; border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: var(--fill); color: var(--label3); }
+.tag-box.gruen { background: var(--green); color: #fff; } .tag-box.gelb { background: var(--yellow); color: #000; } .tag-box.rot { background: var(--red); color: #fff; }
+.tage-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--label2); margin-top: 4px; }
+.stufe-gross { font-size: 40px; font-weight: 800; line-height: 1; }
+.punkt { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; }
+.punkt .sym { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff; background: var(--label3); }
+.punkt.ok .sym { background: var(--green); }
+.punkt .wert { margin-left: auto; color: var(--label2); font-variant-numeric: tabular-nums; }
+.info-btn { flex: none; width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--fill); color: var(--blue); font: italic 700 20px Georgia, "Times New Roman", serif; }
+.chart .pt-gruen { fill: var(--green); } .chart .pt-gelb { fill: var(--yellow); } .chart .pt-rot { fill: var(--red); }
+.chart .pt-sym { font-size: 8px; font-weight: 800; fill: #fff; pointer-events: none; } .chart .pt-sym.gelb { fill: #000; }
+.chart .stufe-seg { fill: var(--s1); } .chart .stufe-seg.s1 { opacity: 0.25; } .chart .stufe-seg.s2 { opacity: 0.45; } .chart .stufe-seg.s3 { opacity: 0.65; } .chart .stufe-seg.s4 { opacity: 0.85; } .chart .stufe-seg.s5 { opacity: 1; }
+.chart .seg-lbl { font-size: 11px; font-weight: 700; fill: var(--label); paint-order: stroke; stroke: var(--bg2); stroke-width: 3px; }
