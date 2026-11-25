@@ -35,6 +35,7 @@ export function render() {
 
 function detail(id) {
   const u = S.ueb[id];
+  if (!u) return '<div class="muted">Diese Übung gibt es in der aktuellen Version nicht mehr.</div>';
   const r = R();
   const d = dosierung(id);
   const eigene = S.kv.eigeneWerte?.[id] || {};

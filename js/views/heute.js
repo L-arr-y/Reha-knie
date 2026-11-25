@@ -100,7 +100,7 @@ function ampelKarte(st, r) {
   const a = st.ampelHeute;
   const s = r.ampel.stufen[a];
   const check = S.morgenchecks.find((c) => c.datum === heute());
-  const wechselHeute = st.stufenVerlauf.at(-1);
+  const wechselHeute = st.stufenVerlauf[st.stufenVerlauf.length - 1];
   const zurueck = wechselHeute && wechselHeute.datum === heute() && wechselHeute.grund === 'rot';
   return `<div class="card">
     <div class="ampel-gross"><div class="kreis ${a}" aria-hidden="true">${esc(s.symbol)}</div>
@@ -277,12 +277,21 @@ function zielText(u, def) {
   return teile.join(' · ');
 }
 
+/** Übung aus der Bibliothek – oder ein Ersatz, falls es sie in dieser Version nicht mehr gibt (z. B. alte Einheit). */
+function uebungDef(u) {
+  return S.ueb[u.uebungId] || {
+    id: u.uebungId, name: u.name || u.uebungId, status: 'gesichert', typ: u.typ || 'frei', kategorie: 'alt', dosierung: {},
+    suchbegriff: u.name || '', minStufe: 1, kniebelastend: false, mitGewicht: !!u.mitGewicht, veraltet: true,
+  };
+}
+
 function uebungKarte(e, u, i, r) {
-  const def = S.ueb[u.uebungId];
+  const def = uebungDef(u);
   const fertig = u.erledigt;
   let html = `<div class="ex ${fertig ? 'done' : ''}"><div class="ex-head"><div class="grow">
       <div class="ex-name">${esc(u.name)} ${statusChip(def.status)}</div><div class="ex-dose">${zielText(u, def)}</div></div>
-      <button class="info-btn" aria-label="Infos zu ${esc(u.name)}" data-action="uebung-info" data-id="${esc(u.uebungId)}">i</button></div>`;
+      ${def.veraltet ? '' : `<button class="info-btn" aria-label="Infos zu ${esc(u.name)}" data-action="uebung-info" data-id="${esc(u.uebungId)}">i</button>`}</div>`;
+  if (def.veraltet) html += `<div class="hinweis-box">Diese Übung gibt es in der aktuellen Version nicht mehr (stammt aus einer älteren Einheit). Du kannst sie als erledigt markieren oder die Einheit einfach speichern.</div>`;
 
   if (u.hsrInfo?.gelbGesperrt) html += `<div class="hinweis-box">Gelb: gleiche Sätze und Last wie zuletzt, heute keine Steigerung.</div>`;
   else if (u.hsrInfo?.erfolg) html += `<div class="hinweis-box">↑ Letztes Mal alles geschafft: jetzt <b>${u.zielSaetze} × ${u.zielWdh}</b>${u.hsrInfo.kgMin != null ? `, Last +5–10 % (<b>${zahlDE(u.hsrInfo.kgMin)}–${zahlDE(u.hsrInfo.kgMax)} kg</b>)` : ''}.</div>`;

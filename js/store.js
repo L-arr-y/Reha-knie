@@ -84,12 +84,12 @@ export async function loeschen(store, keyVal) {
 
 /** regeln.json mit deinen eigenen Grenzwerten aus den Einstellungen. */
 export function R() {
-  const r = structuredClone(S.daten.regeln);
+  const r = JSON.parse(JSON.stringify(S.daten.regeln));
   for (const [pfad, wert] of Object.entries(S.kv.regelWerte || {})) {
     if (wert === null || wert === '' || !Number.isFinite(Number(wert))) continue;
     const teile = pfad.split('.');
     const ziel = teile.slice(0, -1).reduce((x, k) => x[k], r);
-    ziel[teile.at(-1)] = Number(wert);
+    ziel[teile[teile.length - 1]] = Number(wert);
   }
   return r;
 }

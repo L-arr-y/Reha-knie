@@ -1,6 +1,7 @@
 // Tab "Mehr": Warnzeichen, Return-to-Play, Einstellungen (Körper, Plan, Stufe, Grenzwerte), Speicher, Daten.
 import { S, R, setKV, speichern, status, plan, REGEL_FELDER, regelStandard } from '../store.js';
 import { rtpAuswertung } from '../regeln.js';
+import { APP_VERSION } from '../version.js';
 import { db, STORES } from '../db.js';
 import { esc, isoDatum, deDatum, uid, parseZahl, zahlDE } from '../util.js';
 import { icon, statusChip, banner, openSheet, kopf, toast } from '../ui.js';
@@ -64,6 +65,7 @@ export function render() {
     <button class="cell" data-action="alles-loeschen"><div class="grow" style="color:var(--red)">Alle meine Daten löschen</div></button>
   </div><div class="section-footer">Export: 7 CSV-Dateien (Morgentests, Einheiten, Sätze, Stufen, Return-to-Play, VISA-P, Einstellungen) für Excel/Numbers. ${S.kv.letzterExportISO ? `Letzter Export: ${deDatum(S.kv.letzterExportISO.slice(0, 10))}.` : 'Noch nie exportiert.'}</div></div>`;
 
+  html += `<div class="footnote center mb8">App-Version ${esc(APP_VERSION)}</div>`;
   html += `<div class="footnote center">Grundlage: Reha-Leitfaden Patellarsehne & Basketball-Oberkörper (docs/reha_leitfaden.md)</div>`;
   return html;
 }
@@ -162,7 +164,7 @@ export const actions = {
   'rtp-speichern': async () => {
     const d = rtp.entwurf;
     await speichern('rtpchecks', { ...d, id: d.id || uid(), datum: isoDatum() });
-    rtp.entwurf = { ...d, id: d.id || S.rtpchecks.at(-1).id };
+    rtp.entwurf = { ...d, id: d.id || S.rtpchecks[S.rtpchecks.length - 1].id };
     toast('Return-to-Play-Check gespeichert.');
   },
   'home-anleitung': () => oeffneHomeAnleitung(),

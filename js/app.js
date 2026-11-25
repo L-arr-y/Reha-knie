@@ -1,5 +1,6 @@
 // Start der App: Daten laden, Tabs, Klicks und Eingaben an die Ansichten verteilen, Timer-Takt.
-import { S, laden, setKV } from './store.js';
+import { S, laden, setKV, loeschen } from './store.js';
+import { APP_VERSION } from './version.js';
 import { icon, openSheet, closeSheet, renderSheet, sheetOffen, toast } from './ui.js';
 import { esc } from './util.js';
 import * as heute from './views/heute.js';
@@ -21,6 +22,10 @@ const actions = {
   ...daten.actions, ...verlauf.actions, ...uebungen.actions, ...mehr.actions, ...uebersicht.actions, ...heute.actions,
   'willkommen-ok': async () => { await setKV('ersterStartGesehen', true); closeSheet(); },
   'willkommen-home': () => mehr.oeffneHomeAnleitung(),
+  'notfall-verwerfen': async () => {
+    if (!confirm('Die laufende Einheit verwerfen? Ihre Eingaben gehen verloren, alles andere bleibt.')) return;
+    for (const e of S.einheiten.filter((x) => !x.abgeschlossen)) await loeschen('einheiten', e.id);
+  },
 };
 const inputs = { ...heute.inputs, ...uebungen.inputs, ...mehr.inputs, ...verlauf.inputs, ...daten.inputs };
 
@@ -30,10 +35,21 @@ if (!TABS.some((t) => t.id === tab)) tab = 'heute';
 
 function render() {
   const t = TABS.find((x) => x.id === tab);
-  document.getElementById('view').innerHTML = t.view.render();
   document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === tab ? 'page' : 'false'));
-  if (sheetOffen()) renderSheet();
+  try {
+    document.getElementById('view').innerHTML = t.view.render();
+  } catch (err) {
+    // Nie still hängen bleiben: Fehler anzeigen, damit man ihn melden kann.
+    console.error(err);
+    document.getElementById('view').innerHTML = `<h1 class="large-title">${esc(t.label)}</h1>
+      <div class="banner rot"><div class="sym" aria-hidden="true">!</div><div class="body"><div class="headline">Diese Seite konnte nicht angezeigt werden.</div>
+      <div class="footnote" style="color:inherit">Fehler: ${esc(err.message)}${aktiveEinheitVorhanden() ? '<br>Eine laufende Einheit könnte die Ursache sein.' : ''}</div>
+      ${aktiveEinheitVorhanden() ? '<div class="actions"><button class="btn small" data-action="notfall-verwerfen">Laufende Einheit verwerfen</button></div>' : ''}</div></div>
+      <div class="footnote">App-Version ${esc(APP_VERSION)}</div>`;
+  }
+  try { if (sheetOffen()) renderSheet(); } catch (err) { console.error(err); }
 }
+const aktiveEinheitVorhanden = () => S.einheiten?.some((e) => !e.abgeschlossen);
 
 function tabbar() {
   document.getElementById('tabbar').innerHTML = TABS.map((t) =>
@@ -113,14 +129,18 @@ async function start() {
     document.getElementById('view').innerHTML = `<h1 class="large-title">Fehler</h1><div class="card">Die App-Daten konnten nicht geladen werden: ${esc(err.message)}</div>`;
     return;
   }
-  try {
-    if (navigator.storage?.persisted) {
-      S.persistiert = await navigator.storage.persisted();
-      if (!S.persistiert && navigator.storage.persist) S.persistiert = await navigator.storage.persist();
-    }
-  } catch (_) { S.persistiert = null; }
   render();
   if (!S.kv.ersterStartGesehen) willkommen();
+  // Dauerhaften Speicher anfragen – ohne den Start davon abhängig zu machen.
+  (async () => {
+    try {
+      if (navigator.storage?.persisted) {
+        S.persistiert = await navigator.storage.persisted();
+        if (!S.persistiert && navigator.storage.persist) S.persistiert = await navigator.storage.persist();
+        if (tab === 'mehr') render();
+      }
+    } catch (_) { S.persistiert = null; }
+  })();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service Worker nicht registriert', e));
   }
